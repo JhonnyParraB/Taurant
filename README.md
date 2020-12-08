@@ -1,2 +1,2 @@
 # Taurant
-The best customer and transaccion viewer
+A customer and transaccion viewer
