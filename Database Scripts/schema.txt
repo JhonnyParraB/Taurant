@@ -5,41 +5,27 @@ type Buyer {
   buyer_id
   buyer_name
   age
-  connects_from
   perform
 }
 
 buyer_id: string .
 buyer_name: string .
 age: int .
-connects_from: [uid] @reverse .
 perform: [uid] .
-
-type Location {
-  ip
-  has_buyers
-}
-
-ip: string .
-has_buyers: [uid] .
 
 type Transaction {
   transaction_id
-  is_made_from
   is_made_by
+  device
+  ip
   trade
 }
 
 transaction_id: string .
-is_made_from: uid .
+device: string .
+ip: string .
 is_made_by: uid @reverse .
 trade: [uid] @reverse .
-
-type Device {
-  device_name
-}
-
-device_name: string .
 
 type Product {
   product_id
