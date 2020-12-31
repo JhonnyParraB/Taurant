@@ -8,8 +8,8 @@ type Buyer {
   perform
 }
 
-buyer_id: string .
-buyer_name: string .
+buyer_id: string @index(exact) .
+buyer_name: string @index(exact) .
 age: int .
 perform: [uid] .
 
@@ -21,9 +21,9 @@ type Transaction {
   trade
 }
 
-transaction_id: string .
-device: string .
-ip: string .
+transaction_id: string @index(exact) .
+device: string @index(exact) .
+ip: string @index(exact) .
 is_made_by: uid @reverse .
 trade: [uid] @reverse .
 
@@ -34,7 +34,7 @@ type Product {
   has_transactions
 }
 
-product_id: string .
-product_name: string .
+product_id: string @index(exact) .
+product_name: string @index(exact) .
 price: int .
 has_transactions: [uid] @count .
