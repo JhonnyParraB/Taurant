@@ -5,6 +5,7 @@ import (
 
 	"../driver"
 	"../model"
+	jsoniter "github.com/json-iterator/go"
 )
 
 type TransactionRepository interface {
@@ -46,8 +47,8 @@ func (b TransactionRepositoryDGraph) FindById(transaction_id string) *model.Tran
 	var transactionsFound []model.Transaction
 	var objmap map[string]json.RawMessage
 	err := json.Unmarshal(res, &objmap)
-	handleError(err)
-	err = json.Unmarshal(objmap["findTransactionById"], &transactionsFound)
+	var predicateCaseJSON = jsoniter.Config{TagKey: "predicate"}.Froze()
+	err = predicateCaseJSON.Unmarshal(objmap["findTransactionById"], &transactionsFound)
 	handleError(err)
 	if len(transactionsFound) > 0 {
 		return &transactionsFound[0]
