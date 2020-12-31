@@ -5,13 +5,11 @@ type Buyer {
   buyer_id
   buyer_name
   age
-  perform
 }
 
 buyer_id: string @index(exact) .
 buyer_name: string @index(exact) .
 age: int .
-perform: [uid] .
 
 type Transaction {
   transaction_id
@@ -31,10 +29,8 @@ type Product {
   product_id
   product_name
   price
-  has_transactions
 }
 
 product_id: string @index(exact) .
 product_name: string @index(exact) .
 price: int .
-has_transactions: [uid] @count .
