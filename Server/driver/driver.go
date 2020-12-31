@@ -2,13 +2,12 @@ package driver
 
 import (
 	"context"
-	"encoding/json"
 	"log"
 
 	"github.com/dgraph-io/dgo"
 	"github.com/dgraph-io/dgo/protos/api"
+	jsoniter "github.com/json-iterator/go"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/encoding/gzip"
 )
 
 var client = newClient()
@@ -16,31 +15,37 @@ var client = newClient()
 func newClient() *dgo.Dgraph {
 	// Dial a gRPC connection. The address to dial to can be configured when
 	// setting up the dgraph cluster.
-	dialOpts := append([]grpc.DialOption{},
-		grpc.WithInsecure(),
-		grpc.WithDefaultCallOptions(grpc.UseCompressor(gzip.Name)))
-	d, err := grpc.Dial("localhost:8080", dialOpts...)
-
-	handleError(err)
+	d, err := grpc.Dial("localhost:9080", grpc.WithInsecure())
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	return dgo.NewDgraphClient(
 		api.NewDgraphClient(d),
 	)
 }
 
-func runAlter(schema string) {
+func RunAlter(schema string) {
 	err := client.Alter(context.Background(), &api.Operation{
 		Schema: schema,
 	})
 	handleError(err)
 }
 
-func runMutation(object interface{}) {
+func RunMutation(object interface{}) {
+	var predicateCaseJSON = jsoniter.Config{TagKey: "predicate"}.Froze()
 	txn := client.NewTxn()
-	out, err := json.Marshal(object)
+	out, err := predicateCaseJSON.Marshal(object)
 	handleError(err)
-	_, err = txn.Mutate(context.Background(), &api.Mutation{SetJson: out})
+	_, err = txn.Mutate(context.Background(), &api.Mutation{SetJson: out, CommitNow: true})
 	handleError(err)
+}
+
+func RunQuery(query string) []byte {
+	txn := client.NewTxn()
+	res, err := txn.Query(context.Background(), query)
+	handleError(err)
+	return res.GetJson()
 }
 
 func handleError(err interface{}) {
