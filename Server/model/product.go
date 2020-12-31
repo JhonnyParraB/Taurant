@@ -2,8 +2,9 @@ package model
 
 //Product type details
 type Product struct {
-	ID           string        `json:"product_id"`
-	Name         string        `json:"product_name"`
-	Price        int           `json:"price"`
-	Transactions []Transaction `json:"has_transactions"`
+	UID          string        `predicate:"uid,omitempty"`
+	ID           string        `predicate:"product_id,omitempty"`
+	Name         string        `predicate:"product_name,omitempty"`
+	Price        int           `predicate:"price,omitempty"`
+	Transactions []Transaction `predicate:"has_transactions,omitempty"`
 }

@@ -2,9 +2,10 @@ package model
 
 //Transaction type details
 type Transaction struct {
-	ID       string    `json:"id"`
-	Buyer    Buyer     `json:"is_made_by"`
-	IP       string    `json:"ip"`
-	Device   string    `json:"device"`
-	Products []Product `json:"trade"`
+	UID      string    `predicate:"uid,omitempty"`
+	ID       string    `predicate:"id,omitempty"`
+	Buyer    Buyer     `predicate:"is_made_by,omitempty"`
+	IP       string    `predicate:"ip,omitempty"`
+	Device   string    `predicate:"device,omitempty"`
+	Products []Product `predicate:"trade,omitempty"`
 }
