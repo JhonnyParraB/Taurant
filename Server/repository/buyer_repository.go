@@ -94,10 +94,13 @@ func (b BuyerRepositoryDGraph) FindByIdWithTransactions(buyer_id string) *model.
 						ip
 					}
 					device
-					trade{
-						product_id
-						product_name
-						price
+					include {
+						trade{
+							product_id
+							product_name
+							price
+						}
+						quantity
 					}
 				}
 			}
@@ -160,13 +163,15 @@ func (b BuyerRepositoryDGraph) FindRecommendedProducts(buyerID string) []model.P
 	query :=
 		`
 		{
-			var(func:has(transaction_id)) @groupby(trade) {
-				times_buyed as count(uid)
+			var(func:has(quantity)) @groupby(trade) {
+				times_buyed as sum(quantity)
 			}
 	
 			var(func:eq(buyer_id, "` + buyerID + `")){
 				~is_made_by{
-					products_previously_buyed as trade
+					include{
+						products_previously_buyed as trade
+					}
 				}
 			}
 	
