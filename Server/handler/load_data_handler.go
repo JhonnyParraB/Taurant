@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/csv"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -113,12 +114,22 @@ func (l *LoadDayDataHandler) loadTransactions(date int32) {
 		recordFields[4] = strings.Replace(recordFields[4], ")", "", -1)
 		productsID := strings.Split(recordFields[4], ",")
 		var products []model.Product
+		var productOrders []model.ProductOrder
 		for _, productID := range productsID {
 			if uid, exists := iDUIDProducts[productID]; exists {
 				products = append(products, model.Product{
 					UID: uid,
 				})
 			}
+		}
+		dupMap := dup_count(products)
+		for uid, quantity := range dupMap {
+			productOrders = append(productOrders, model.ProductOrder{
+				Product: &model.Product{
+					UID: uid,
+				},
+				Quantity: quantity,
+			})
 		}
 
 		//set location
@@ -134,13 +145,19 @@ func (l *LoadDayDataHandler) loadTransactions(date int32) {
 		}
 
 		transaction := model.Transaction{
-			ID:       recordFields[0],
-			Buyer:    buyer,
-			Location: location,
-			Device:   recordFields[3],
-			Products: products,
+			ID:            recordFields[0],
+			Buyer:         &buyer,
+			Location:      &location,
+			Device:        recordFields[3],
+			ProductOrders: &productOrders,
 		}
-		transactionFound := l.productRepository.FindById(transaction.ID)
+
+		for k, v := range dupMap {
+			if v > 2 {
+				fmt.Printf("%s Item : %s , Count : %d\n", transaction.ID, k, v)
+			}
+		}
+		transactionFound := l.transactionRepository.FindById(transaction.ID)
 		if transactionFound == nil {
 			l.transactionRepository.Create(&transaction)
 		} else {
@@ -174,6 +191,24 @@ func splitAt(substring string) func(data []byte, atEOF bool) (advance int, token
 		// Request more data.
 		return 0, nil, nil
 	}
+}
+
+func dup_count(list []model.Product) map[string]int {
+
+	duplicate_frequency := make(map[string]int)
+
+	for _, item := range list {
+		// check if the item/element exist in the duplicate_frequency map
+
+		_, exist := duplicate_frequency[item.UID]
+
+		if exist {
+			duplicate_frequency[item.UID] += 1 // increase counter by 1 if already in the map
+		} else {
+			duplicate_frequency[item.UID] = 1 // else start counting from 1
+		}
+	}
+	return duplicate_frequency
 }
 
 func handleError(err interface{}) {
