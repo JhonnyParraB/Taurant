@@ -17,16 +17,15 @@ type TransactionRepository interface {
 type TransactionRepositoryDGraph struct {
 }
 
-func (b TransactionRepositoryDGraph) Create(transaction *model.Transaction) string {
+func (b TransactionRepositoryDGraph) Create(transaction *model.Transaction) {
 	transaction.UID = "_:" + transaction.ID
 	driver.RunMutation(transaction)
-	return transaction.ID
+	*transaction = *(b.FindById(transaction.ID))
 }
 
-func (b TransactionRepositoryDGraph) Update(uid string, transaction *model.Transaction) string {
+func (b TransactionRepositoryDGraph) Update(uid string, transaction *model.Transaction) {
 	transaction.UID = uid
 	driver.RunMutation(transaction)
-	return transaction.ID
 }
 
 func (b TransactionRepositoryDGraph) FindById(transaction_id string) *model.Transaction {

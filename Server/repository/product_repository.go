@@ -42,16 +42,15 @@ func (b ProductRepositoryDGraph) FetchUIDs() map[string]string {
 	return iDUIDProducts
 }
 
-func (b ProductRepositoryDGraph) Create(product *model.Product) string {
+func (b ProductRepositoryDGraph) Create(product *model.Product) {
 	product.UID = "_:" + product.ID
 	driver.RunMutation(product)
-	return product.ID
+	*product = *(b.FindById(product.ID))
 }
 
-func (b ProductRepositoryDGraph) Update(uid string, product *model.Product) string {
+func (b ProductRepositoryDGraph) Update(uid string, product *model.Product) {
 	product.UID = uid
 	driver.RunMutation(product)
-	return product.ID
 }
 
 func (b ProductRepositoryDGraph) FindById(product_id string) *model.Product {
