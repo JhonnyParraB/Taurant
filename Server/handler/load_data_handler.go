@@ -19,20 +19,26 @@ import (
 
 var iDUIDBuyers map[string]string
 var iDUIDProducts map[string]string
+var iDUIDLocations map[string]string
+
+func init() {
+	iDUIDBuyers = make(map[string]string)
+	iDUIDProducts = make(map[string]string)
+	iDUIDLocations = make(map[string]string)
+}
 
 type LoadDayDataHandler struct {
 	buyerRepository       repository.BuyerRepositoryDGraph
 	productRepository     repository.ProductRepositoryDGraph
 	transactionRepository repository.TransactionRepositoryDGraph
+	locationRepository    repository.LocationRepositoryDGraph
 }
 
 func (l *LoadDayDataHandler) LoadDayData(w http.ResponseWriter, r *http.Request) {
 	//date, err := strconv.Atoi(r.URL.Query().Get("date"))
 	date := int32(time.Now().Unix())
 	l.loadBuyers(date)
-	iDUIDBuyers = l.buyerRepository.FetchUIDs()
 	l.loadProducts(date)
-	iDUIDProducts = l.productRepository.FetchUIDs()
 	l.loadTransactions(date)
 }
 
@@ -50,6 +56,7 @@ func (l *LoadDayDataHandler) loadBuyers(date int32) {
 		} else {
 			l.buyerRepository.Update(buyerFound.UID, &buyer)
 		}
+		iDUIDBuyers[buyer.ID] = buyer.UID
 	}
 }
 
@@ -78,6 +85,7 @@ func (l *LoadDayDataHandler) loadProducts(date int32) {
 		} else {
 			l.productRepository.Update(productFound.UID, &product)
 		}
+		iDUIDProducts[product.ID] = product.UID
 	}
 }
 
@@ -90,6 +98,7 @@ func (l *LoadDayDataHandler) loadTransactions(date int32) {
 	for scanner.Scan() {
 		record := scanner.Text()
 		recordFields := strings.Split(record, "\000")
+
 		//set buyer
 		buyerID := recordFields[1]
 		var buyer model.Buyer
@@ -97,12 +106,8 @@ func (l *LoadDayDataHandler) loadTransactions(date int32) {
 			buyer = model.Buyer{
 				UID: uid,
 			}
-		} else {
-			buyer = model.Buyer{
-				UID: "_:" + buyerID,
-				ID:  buyerID,
-			}
 		}
+
 		//set products
 		recordFields[4] = strings.Replace(recordFields[4], "(", "", -1)
 		recordFields[4] = strings.Replace(recordFields[4], ")", "", -1)
@@ -113,18 +118,25 @@ func (l *LoadDayDataHandler) loadTransactions(date int32) {
 				products = append(products, model.Product{
 					UID: uid,
 				})
-			} else {
-				products = append(products, model.Product{
-					UID: "_:" + productID,
-					ID:  productID,
-				})
 			}
+		}
+
+		//set location
+		IP := recordFields[2]
+		location := model.Location{
+			IP: IP,
+		}
+		locationFound := l.locationRepository.FindByIP(IP)
+		if locationFound == nil {
+			l.locationRepository.Create(&location)
+		} else {
+			location.UID = locationFound.UID
 		}
 
 		transaction := model.Transaction{
 			ID:       recordFields[0],
 			Buyer:    buyer,
-			IP:       recordFields[2],
+			Location: location,
 			Device:   recordFields[3],
 			Products: products,
 		}
