@@ -35,7 +35,7 @@ func (b *BuyersHandler) GetBuyerDetailedInformation(w http.ResponseWriter, r *ht
 }
 
 func respondwithJSON(w http.ResponseWriter, code int, payload interface{}) {
-	var endpointCaseJSON = jsoniter.Config{TagKey: "predicate"}.Froze()
+	var endpointCaseJSON = jsoniter.Config{TagKey: "endpoint"}.Froze()
 	response, _ := endpointCaseJSON.Marshal(payload)
 
 	w.Header().Set("Content-Type", "application/json")
