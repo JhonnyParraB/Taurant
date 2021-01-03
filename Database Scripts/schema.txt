@@ -15,15 +15,20 @@ type Transaction {
   transaction_id
   is_made_by
   device
-  ip
+  location
   trade
 }
 
 transaction_id: string @index(exact) .
 device: string @index(exact) .
-ip: string @index(exact) .
 is_made_by: uid @reverse .
 trade: [uid] @reverse .
+location: uid @reverse .
+
+type Location {
+  ip
+}
+ip: string @index(exact) .
 
 type Product {
   product_id
