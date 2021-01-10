@@ -15,8 +15,8 @@ type BuyersHandler struct {
 
 type BuyerDetailedInformation struct {
 	Buyer               model.Buyer     `endpoint:"buyer,omitempty"`
-	BuyerWithSameIP     []model.Buyer   `endpoint:"buyersWithSameIp,omitempty"`
-	RecommendedProducts []model.Product `endpoint:"productsRecommended,omitempty"`
+	BuyerWithSameIP     []model.Buyer   `endpoint:"buyers_with_same_ip,omitempty"`
+	RecommendedProducts []model.Product `endpoint:"products_recommended,omitempty"`
 }
 
 func (b *BuyersHandler) GetBuyersBasicInformation(w http.ResponseWriter, r *http.Request) {

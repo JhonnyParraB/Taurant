@@ -2,7 +2,8 @@
   <v-row align="center" class="list px-3 mx-auto">
     <v-col cols="12" sm="12">
       <v-card class="mx-auto" tile>
-        <v-card-title>Buyers</v-card-title>
+        <v-card-title>Buyer Information</v-card-title>
+        <v-card-title>Buyer Information</v-card-title>
         <v-data-table
           :headers="headers"
           :items="buyers"
