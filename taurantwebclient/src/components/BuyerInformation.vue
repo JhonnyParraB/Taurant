@@ -3,7 +3,10 @@
     <v-col cols="12" sm="12">
       <v-card class="mx-auto" tile>
         <v-card-title>Buyer Information</v-card-title>
-        <v-card-title>Buyer Information</v-card-title>
+        <v-card>
+            <v-card-title>{{ name }}</v-card-title>
+            <v-card-subtitle>{{ age }} years</v-card-subtitle>
+        </v-card>
         <v-data-table
           :headers="headers"
           :items="buyers"
@@ -23,8 +26,7 @@ export default {
   name: "buyers-list",
   data() {
     return {
-      buyers: [],
-      title: "",
+      buyerInformation: null,
       headers: [
         { text: "ID", align: "start", sortable: true, value: "id" },
         { text: "Name", sortable: true, value: "name" },
@@ -33,28 +35,18 @@ export default {
     };
   },
   methods: {
-    retrieveBuyers() {
+    retrieveBuyerInformation() {
       BuyersDataService.getAll()
         .then((response) => {
-          this.buyers = response.data.map(this.getDisplayBuyer);
+          this.buyerInformation = response
         })
         .catch((e) => {
           console.log(e);
         });
     },
     refreshList() {
-      this.retrieveBuyers();
+      this.retrieveBuyerInformation();
     },
-    getDisplayBuyer(buyer) {
-      return {
-        name: buyer.name,
-        age: buyer.age,
-        id: buyer.id
-      };
-    },
-    seeBuyerInformation(item){
-      this.$router.replace({name: "buyer-information",  params: {id:item.id}});
-    }
   },
   mounted() {
     this.retrieveBuyers();

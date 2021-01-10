@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/csv"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -152,11 +151,6 @@ func (l *LoadDayDataHandler) loadTransactions(date int32) {
 			ProductOrders: &productOrders,
 		}
 
-		for k, v := range dupMap {
-			if v > 2 {
-				fmt.Printf("%s Item : %s , Count : %d\n", transaction.ID, k, v)
-			}
-		}
 		transactionFound := l.transactionRepository.FindById(transaction.ID)
 		if transactionFound == nil {
 			l.transactionRepository.Create(&transaction)
