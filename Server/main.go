@@ -33,6 +33,6 @@ func getRouter() *chi.Mux {
 
 	//buyers
 	router.Get("/buyers", buyersHandler.GetBuyersBasicInformation)
-	router.Get("/buyers1", buyersHandler.GetBuyerDetailedInformation)
+	router.Get("/buyers/{id}", buyersHandler.GetBuyerDetailedInformation)
 	return router
 }

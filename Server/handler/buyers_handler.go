@@ -5,6 +5,7 @@ import (
 
 	"../model"
 	"../repository"
+	"github.com/go-chi/chi"
 	jsoniter "github.com/json-iterator/go"
 )
 
@@ -23,9 +24,10 @@ func (b *BuyersHandler) GetBuyersBasicInformation(w http.ResponseWriter, r *http
 }
 
 func (b *BuyersHandler) GetBuyerDetailedInformation(w http.ResponseWriter, r *http.Request) {
-	buyer := b.buyerRepository.FindByIdWithTransactions("49688cb8")
-	buyersWithSameIP := b.buyerRepository.FindBuyersWithSameIP("49688cb8")
-	recommendedProducts := b.buyerRepository.FindRecommendedProducts("49688cb8")
+	id := chi.URLParam(r, "id")
+	buyer := b.buyerRepository.FindByIdWithTransactions(id)
+	buyersWithSameIP := b.buyerRepository.FindBuyersWithSameIP(id)
+	recommendedProducts := b.buyerRepository.FindRecommendedProducts(id)
 	buyerDetailed := BuyerDetailedInformation{
 		Buyer:               *buyer,
 		BuyerWithSameIP:     buyersWithSameIP,

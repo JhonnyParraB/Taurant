@@ -1,21 +1,16 @@
 <template>
   <v-row align="center" class="list px-3 mx-auto">
-
-
-
     <v-col cols="12" sm="12">
       <v-card class="mx-auto" tile>
         <v-card-title>Buyers</v-card-title>
-
         <v-data-table
           :headers="headers"
           :items="buyers"
           disable-pagination
           :hide-default-footer="true"
+          @click:row="seeBuyerInformation"
         >
-
         </v-data-table>
-
       </v-card>
     </v-col>
   </v-row>
@@ -30,7 +25,8 @@ export default {
       buyers: [],
       title: "",
       headers: [
-        { text: "Name", align: "start", sortable: true, value: "name" },
+        { text: "ID", align: "start", sortable: true, value: "id" },
+        { text: "Name", sortable: true, value: "name" },
         { text: "Age", value: "age", sortable: true },
       ],
     };
@@ -40,7 +36,6 @@ export default {
       BuyersDataService.getAll()
         .then((response) => {
           this.buyers = response.data.map(this.getDisplayBuyer);
-          console.log(response.data);
         })
         .catch((e) => {
           console.log(e);
@@ -53,12 +48,16 @@ export default {
       return {
         name: buyer.name,
         age: buyer.age,
+        id: buyer.id
       };
     },
+    seeBuyerInformation(item){
+      this.$router.replace({name: "buyer-information",  params: {id:item.id}});
+    }
   },
   mounted() {
     this.retrieveBuyers();
-  },
+  }
 };
 </script>
 
@@ -66,4 +65,4 @@ export default {
 .list {
   max-width: 750px;
 }
-</style>1
+</style>

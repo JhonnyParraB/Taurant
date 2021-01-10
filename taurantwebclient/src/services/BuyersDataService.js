@@ -4,6 +4,9 @@ class BuyersDataService {
   getAll() {
     return http.get("/buyers");
   }
+  getBuyerDetailedInformation() {
+    return http.get("/buyers");
+  }
 }
 
 export default new BuyersDataService();
