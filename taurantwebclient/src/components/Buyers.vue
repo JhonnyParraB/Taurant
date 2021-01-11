@@ -9,6 +9,7 @@
           disable-pagination
           :hide-default-footer="true"
           @click:row="seeBuyerInformation"
+          :loading="loading"
         >
         </v-data-table>
       </v-card>
@@ -23,6 +24,7 @@ export default {
   data() {
     return {
       buyers: [],
+      loading: true,
       title: "",
       headers: [
         { text: "ID", align: "start", sortable: true, value: "id" },
@@ -35,6 +37,7 @@ export default {
     retrieveBuyers() {
       BuyersDataService.getAll()
         .then((response) => {
+          this.loading = false;
           this.buyers = response.data.map(this.getDisplayBuyer);
         })
         .catch((e) => {

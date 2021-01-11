@@ -7,7 +7,7 @@
             <v-card-title>{{ this.buyerInformation.buyer.name }}</v-card-title>
             <v-card-subtitle>{{ this.buyerInformation.buyer.age }} years</v-card-subtitle>
 
-            <v-expansion-panels popout>
+            <v-expansion-panels>
               <v-expansion-panel>
                 <v-expansion-panel-header>Shopping History</v-expansion-panel-header>
                 <v-expansion-panel-content>
@@ -16,7 +16,32 @@
                     :items="this.buyerInformation.buyer.transactions"
                     disable-pagination
                     :hide-default-footer="true"
+                    show-expand
                   >
+                  <template v-slot:expanded-item="{item}">
+                    <v-data-table
+                    :headers="productOrderHeaders"
+                    :items="item.product_orders"
+                    disable-pagination
+                    :hide-default-footer="true"
+                    >
+                      <template v-slot:[`item.subtotal`]="{ item }">
+                        <span> {{ centsToDollars(parseInt(item.product.price) * parseInt(item.quantity)) }}</span>
+                      </template>
+                      <template v-slot:[`item.product.price`]="{ item }">
+                        <span>{{ centsToDollars(item.product.price) }}</span>
+                      </template>
+                      <template slot="body.append">
+                        <tr>
+                            <th>Total</th>
+                            <th></th>
+                            <th></th> 
+                            <th></th>
+                            <th>00</th>
+                        </tr>                   
+                      </template>
+                    </v-data-table>                   
+                  </template>
                   </v-data-table>
                 </v-expansion-panel-content>
               </v-expansion-panel>
@@ -42,6 +67,9 @@
                     disable-pagination
                     :hide-default-footer="true"
                   >
+                    <template v-slot:[`item.price`]="{ item }">
+                      <span>{{ centsToDollars(item.price) }}</span>
+                    </template>
                   </v-data-table>
                 </v-expansion-panel-content>
               </v-expansion-panel>
@@ -64,6 +92,7 @@ export default {
         { text: "ID", align: "start", sortable: true, value: "id" },
         { text: "IP", sortable: true, value: "location.ip" },
         { text: "Device", value: "device", sortable: true },
+        { text: '', value: 'data-table-expand' },
       ],
       buyersWithSameIPHeaders: [
         { text: "ID", align: "start", sortable: true, value: "id" },
@@ -74,7 +103,14 @@ export default {
       recommendedProductsHeader: [
         { text: "ID", align: "start", sortable: true, value: "id" },
         { text: "Name", sortable: true, value: "name" },
-        { text: "Price", value: "price", sortable: true },
+        { text: "Price ($)", value: "price", sortable: true },
+      ],
+      productOrderHeaders: [
+        { text: "ID", align: "start", sortable: true, value: "product.id" },
+        { text: "Name", sortable: true, value: "product.name" },
+        { text: "Price ($)", value: "product.price", sortable: true },
+        { text: "Quantity", value: "quantity", sortable: true },
+        { text: "Subtotal ($)", value: "subtotal", sortable: true },
       ],
     };
   },
@@ -92,6 +128,16 @@ export default {
     refreshList() {
       this.retrieveBuyerInformation();
     },
+    centsToDollars (value) {
+        return parseInt(value)/100;
+    },
+    getTotalBuy (product_orders) {
+        var total = 0;
+        for(var product_order in product_orders){
+          total += this.centsToDollars(parseInt(product_order.product.price) * parseInt(product_order.quantity));
+        }
+        return total
+    }
   },
   mounted() {
     this.retrieveBuyerInformation();
