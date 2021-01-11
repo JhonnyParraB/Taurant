@@ -7,7 +7,7 @@ export default new Router({
   mode: "history",
   routes: [
     {
-      path: "/buyer/:id",
+      path: "/buyers/:id",
       alias: "/buyer",
       name: "buyer-information",
       component: () => import("./components/BuyerInformation")

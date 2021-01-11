@@ -4,8 +4,8 @@ class BuyersDataService {
   getAll() {
     return http.get("/buyers");
   }
-  getBuyerDetailedInformation() {
-    return http.get("/buyers");
+  getBuyerDetailedInformation(id) {
+    return http.get("/buyers/"+id);
   }
 }
 
