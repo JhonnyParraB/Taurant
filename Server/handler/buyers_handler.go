@@ -16,7 +16,7 @@ type BuyersHandler struct {
 type BuyerDetailedInformation struct {
 	Buyer               model.Buyer     `endpoint:"buyer,omitempty"`
 	BuyerWithSameIP     []model.Buyer   `endpoint:"buyers_with_same_ip,omitempty"`
-	RecommendedProducts []model.Product `endpoint:"products_recommended,omitempty"`
+	RecommendedProducts []model.Product `endpoint:"recommended_products,omitempty"`
 }
 
 func (b *BuyersHandler) GetBuyersBasicInformation(w http.ResponseWriter, r *http.Request) {
@@ -26,14 +26,16 @@ func (b *BuyersHandler) GetBuyersBasicInformation(w http.ResponseWriter, r *http
 func (b *BuyersHandler) GetBuyerDetailedInformation(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	buyer := b.buyerRepository.FindByIdWithTransactions(id)
-	buyersWithSameIP := b.buyerRepository.FindBuyersWithSameIP(id)
-	recommendedProducts := b.buyerRepository.FindRecommendedProducts(id)
-	buyerDetailed := BuyerDetailedInformation{
-		Buyer:               *buyer,
-		BuyerWithSameIP:     buyersWithSameIP,
-		RecommendedProducts: recommendedProducts,
+	if buyer != nil {
+		buyersWithSameIP := b.buyerRepository.FindBuyersWithSameIP(id)
+		recommendedProducts := b.buyerRepository.FindRecommendedProducts(id)
+		buyerDetailed := BuyerDetailedInformation{
+			Buyer:               *buyer,
+			BuyerWithSameIP:     buyersWithSameIP,
+			RecommendedProducts: recommendedProducts,
+		}
+		respondwithJSON(w, http.StatusOK, buyerDetailed)
 	}
-	respondwithJSON(w, http.StatusOK, buyerDetailed)
 }
 
 func respondwithJSON(w http.ResponseWriter, code int, payload interface{}) {
