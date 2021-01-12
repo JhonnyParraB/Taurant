@@ -2,9 +2,9 @@
   <v-row align="center" class="list px-3 mx-auto">
     <v-col cols="12" sm="12">
       <v-card class="mx-auto" tile>
-        <v-card-title>Buyer Information</v-card-title>
+        <v-card-title >Buyer Information</v-card-title>
         <v-card>
-            <v-card-title>{{ this.buyerInformation.buyer.name }}</v-card-title>
+            <v-card-title>{{ this.buyerInformation.buyer.id }}    {{this.buyerInformation.buyer.name}}</v-card-title>
             <v-card-subtitle>{{ this.buyerInformation.buyer.age }} years</v-card-subtitle>
 
             <v-expansion-panels>
@@ -18,29 +18,32 @@
                     :hide-default-footer="true"
                     show-expand
                   >
-                  <template v-slot:expanded-item="{item}">
-                    <v-data-table
-                    :headers="productOrderHeaders"
-                    :items="item.product_orders"
-                    disable-pagination
-                    :hide-default-footer="true"
-                    >
-                      <template v-slot:[`item.subtotal`]="{ item }">
-                        <span> {{ centsToDollars(parseInt(item.product.price) * parseInt(item.quantity)) }}</span>
-                      </template>
-                      <template v-slot:[`item.product.price`]="{ item }">
-                        <span>{{ centsToDollars(item.product.price) }}</span>
-                      </template>
-                      <template slot="body.append">
-                        <tr>
-                            <th>Total</th>
-                            <th></th>
-                            <th></th> 
-                            <th></th>
-                            <th>00</th>
-                        </tr>                   
-                      </template>
-                    </v-data-table>                   
+                  <template v-slot:expanded-item="{ headers, item }">
+                    <td :colspan=headers.length>
+                      <v-data-table
+                      :headers="productOrderHeaders"
+                      :items="item.product_orders"
+                      disable-pagination
+                      :hide-default-footer="true"
+                      class="elevation-1 primary"
+                      >
+                        <template v-slot:[`item.subtotal`]="{ item }">
+                          <span> {{ centsToDollars(parseInt(item.product.price) * parseInt(item.quantity)) }}</span>
+                        </template>
+                        <template v-slot:[`item.product.price`]="{ item }">
+                          <span>{{ centsToDollars(item.product.price) }}</span>
+                        </template>
+                        <template slot="body.append">
+                          <tr>
+                              <th>Total</th>
+                              <th></th>
+                              <th></th> 
+                              <th></th>
+                              <th> {{ getTotalBuy(item.product_orders) }} </th>
+                          </tr>                   
+                        </template>
+                      </v-data-table>
+                    </td> 
                   </template>
                   </v-data-table>
                 </v-expansion-panel-content>
@@ -83,7 +86,7 @@
 <script>
 import BuyersDataService from "../services/BuyersDataService";
 export default {
-  name: "buyers-list",
+  name: "buyer-information",
   data() {
     return {
       buyerInformation: null,
@@ -133,8 +136,8 @@ export default {
     },
     getTotalBuy (product_orders) {
         var total = 0;
-        for(var product_order in product_orders){
-          total += this.centsToDollars(parseInt(product_order.product.price) * parseInt(product_order.quantity));
+        for(var i in product_orders){
+          total += this.centsToDollars(parseInt(product_orders[i].product.price) * parseInt(product_orders[i].quantity)) 
         }
         return total
     }
