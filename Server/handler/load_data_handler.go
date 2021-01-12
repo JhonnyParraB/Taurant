@@ -10,39 +10,65 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 
 	"../model"
 	"../repository"
+	"github.com/go-chi/chi"
 	jsoniter "github.com/json-iterator/go"
 )
-
-var iDUIDBuyers map[string]string
-var iDUIDProducts map[string]string
-var iDUIDLocations map[string]string
-
-func init() {
-	iDUIDBuyers = make(map[string]string)
-	iDUIDProducts = make(map[string]string)
-	iDUIDLocations = make(map[string]string)
-}
 
 type LoadDayDataHandler struct {
 	buyerRepository       repository.BuyerRepositoryDGraph
 	productRepository     repository.ProductRepositoryDGraph
 	transactionRepository repository.TransactionRepositoryDGraph
 	locationRepository    repository.LocationRepositoryDGraph
+	jobChan               chan loadDataJob
+	iDUIDBuyers           map[string]string
+	iDUIDProducts         map[string]string
+	iDUIDLocations        map[string]string
+}
+
+type loadDataJob struct {
+	date int
+}
+
+func (l *LoadDayDataHandler) Init() {
+	l.jobChan = make(chan loadDataJob, 100)
+	go l.worker(l.jobChan)
+	l.iDUIDBuyers = make(map[string]string)
+	l.iDUIDProducts = make(map[string]string)
+	l.iDUIDLocations = make(map[string]string)
+}
+
+func (l *LoadDayDataHandler) worker(jobChan <-chan loadDataJob) {
+	for job := range jobChan {
+		l.processLoadDataJob(job)
+	}
+}
+
+func (l *LoadDayDataHandler) processLoadDataJob(job loadDataJob) {
+	l.loadBuyers(job.date)
+	l.loadProducts(job.date)
+	l.loadTransactions(job.date)
+	print("CARGADOS")
 }
 
 func (l *LoadDayDataHandler) LoadDayData(w http.ResponseWriter, r *http.Request) {
-	//date, err := strconv.Atoi(r.URL.Query().Get("date"))
-	date := int32(time.Now().Unix())
-	l.loadBuyers(date)
-	l.loadProducts(date)
-	l.loadTransactions(date)
+	dateParam := chi.URLParam(r, "date")
+	dateUnixFormat, err := strconv.Atoi(dateParam)
+	handleError(err)
+	a := true
+	job := loadDataJob{date: dateUnixFormat}
+	select {
+	case l.jobChan <- job:
+		a = true
+	default:
+		a = false
+	}
+	print(a)
 }
 
-func (l *LoadDayDataHandler) loadBuyers(date int32) {
+func (l *LoadDayDataHandler) loadBuyers(date int) {
 	var endpointCaseJSON = jsoniter.Config{TagKey: "endpoint"}.Froze()
 	response, err := http.Get("https://kqxty15mpg.execute-api.us-east-1.amazonaws.com/buyers")
 	handleError(err)
@@ -56,11 +82,11 @@ func (l *LoadDayDataHandler) loadBuyers(date int32) {
 		} else {
 			l.buyerRepository.Update(buyerFound.UID, &buyer)
 		}
-		iDUIDBuyers[buyer.ID] = buyer.UID
+		l.iDUIDBuyers[buyer.ID] = buyer.UID
 	}
 }
 
-func (l *LoadDayDataHandler) loadProducts(date int32) {
+func (l *LoadDayDataHandler) loadProducts(date int) {
 	response, err := http.Get("https://kqxty15mpg.execute-api.us-east-1.amazonaws.com/products")
 	handleError(err)
 	data, _ := ioutil.ReadAll(response.Body)
@@ -85,11 +111,11 @@ func (l *LoadDayDataHandler) loadProducts(date int32) {
 		} else {
 			l.productRepository.Update(productFound.UID, &product)
 		}
-		iDUIDProducts[product.ID] = product.UID
+		l.iDUIDProducts[product.ID] = product.UID
 	}
 }
 
-func (l *LoadDayDataHandler) loadTransactions(date int32) {
+func (l *LoadDayDataHandler) loadTransactions(date int) {
 	response, err := http.Get("https://kqxty15mpg.execute-api.us-east-1.amazonaws.com/transactions")
 	data, _ := ioutil.ReadAll(response.Body)
 	bytesReader := bytes.NewReader(data)
@@ -102,7 +128,7 @@ func (l *LoadDayDataHandler) loadTransactions(date int32) {
 		//set buyer
 		buyerID := recordFields[1]
 		var buyer model.Buyer
-		if uid, exists := iDUIDBuyers[buyerID]; exists {
+		if uid, exists := l.iDUIDBuyers[buyerID]; exists {
 			buyer = model.Buyer{
 				UID: uid,
 			}
@@ -115,13 +141,13 @@ func (l *LoadDayDataHandler) loadTransactions(date int32) {
 		var products []model.Product
 		var productOrders []model.ProductOrder
 		for _, productID := range productsID {
-			if uid, exists := iDUIDProducts[productID]; exists {
+			if uid, exists := l.iDUIDProducts[productID]; exists {
 				products = append(products, model.Product{
 					UID: uid,
 				})
 			}
 		}
-		dupMap := dup_count(products)
+		dupMap := dupCount(products)
 		for uid, quantity := range dupMap {
 			productOrders = append(productOrders, model.ProductOrder{
 				Product: &model.Product{
@@ -187,22 +213,22 @@ func splitAt(substring string) func(data []byte, atEOF bool) (advance int, token
 	}
 }
 
-func dup_count(list []model.Product) map[string]int {
+func dupCount(list []model.Product) map[string]int {
 
-	duplicate_frequency := make(map[string]int)
+	duplicateFrequency := make(map[string]int)
 
 	for _, item := range list {
 		// check if the item/element exist in the duplicate_frequency map
 
-		_, exist := duplicate_frequency[item.UID]
+		_, exist := duplicateFrequency[item.UID]
 
 		if exist {
-			duplicate_frequency[item.UID] += 1 // increase counter by 1 if already in the map
+			duplicateFrequency[item.UID]++ // increase counter by 1 if already in the map
 		} else {
-			duplicate_frequency[item.UID] = 1 // else start counting from 1
+			duplicateFrequency[item.UID] = 1 // else start counting from 1
 		}
 	}
-	return duplicate_frequency
+	return duplicateFrequency
 }
 
 func handleError(err interface{}) {

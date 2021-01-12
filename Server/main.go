@@ -29,7 +29,8 @@ func getRouter() *chi.Mux {
 
 	var dayDataLoaderHandler handler.LoadDayDataHandler
 	var buyersHandler handler.BuyersHandler
-	router.Post("/load-day-data", dayDataLoaderHandler.LoadDayData)
+	dayDataLoaderHandler.Init()
+	router.Post("/load-day-data/{date}", dayDataLoaderHandler.LoadDayData)
 
 	//buyers
 	router.Get("/buyers", buyersHandler.GetBuyersBasicInformation)
