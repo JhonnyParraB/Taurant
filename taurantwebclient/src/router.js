@@ -13,6 +13,12 @@ export default new Router({
       component: () => import("./components/BuyerInformation")
     },
     {
+      path: "/buyers",
+      alias: "/buyers",
+      name: "buyers",
+      component: () => import("./components/Buyers")
+    },
+    {
       path: "/",
       alias: "/buyers",
       name: "buyers",
