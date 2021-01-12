@@ -55,7 +55,7 @@ export default {
       };
     },
     seeBuyerInformation(item){
-      this.$router.replace({name: "buyer-information",  params: {id:item.id}});
+      this.$router.push({name: "buyer-information",  params: {id:item.id}});
     }
   },
   mounted() {

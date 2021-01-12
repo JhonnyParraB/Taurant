@@ -1,6 +1,6 @@
 <template>
   <div>
-    <button id="taurantBtn">
+    <button @click="goHome()" id="taurantBtn">
          Taurant 
     </button>
   </div>
@@ -8,16 +8,14 @@
 
 
 <script>
-import { mdiSilverware } from '@mdi/js';
 export default {
   name: "taurant-bar",
   data() {
-    return {
-      mdiSilverware,
-    };
   },
   methods: {
-    
+    goHome(){
+      this.$router.push({name: "buyers"});
+    }
   },
   mounted() {
     

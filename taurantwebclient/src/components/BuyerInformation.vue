@@ -106,14 +106,14 @@ export default {
       recommendedProductsHeader: [
         { text: "ID", align: "start", sortable: true, value: "id" },
         { text: "Name", sortable: true, value: "name" },
-        { text: "Price ($)", value: "price", sortable: true },
+        { text: "Price ($USD)", value: "price", sortable: true },
       ],
       productOrderHeaders: [
         { text: "ID", align: "start", sortable: true, value: "product.id" },
         { text: "Name", sortable: true, value: "product.name" },
-        { text: "Price ($)", value: "product.price", sortable: true },
+        { text: "Price ($USD)", value: "product.price", sortable: true },
         { text: "Quantity", value: "quantity", sortable: true },
-        { text: "Subtotal ($)", value: "subtotal", sortable: true },
+        { text: "Subtotal ($USD)", value: "subtotal", sortable: true },
       ],
     };
   },
