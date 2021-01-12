@@ -2,7 +2,7 @@
   <v-row align="center" class="list px-3 mx-auto">
     <v-col cols="12" sm="12">
       <v-card class="mx-auto" tile>
-        <v-card-title >Buyer Information</v-card-title>
+        <v-card-title class="justify-center">Buyer Information</v-card-title>
         <v-card>
             <v-card-title>{{ this.buyerInformation.buyer.id }}    {{this.buyerInformation.buyer.name}}</v-card-title>
             <v-card-subtitle>{{ this.buyerInformation.buyer.age }} years</v-card-subtitle>
