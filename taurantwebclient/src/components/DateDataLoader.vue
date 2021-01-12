@@ -17,16 +17,47 @@
             required
           ></v-text-field>
         </div>
-        <div id="getUpdatedBtn">
-            <v-btn
+
+        <div class="text-center">
+    <v-dialog
+      v-model="dialog"
+      width="500"
+    >
+      <template v-slot:activator="{  }">
+        <v-btn
             class="mr-4"
             :disabled="!valid"
             outlined
             color="indigo"
             @click="loadDateData()"
-            >
-                Get Updated
-            </v-btn>
+        >
+          Get Updated
+        </v-btn>
+      </template>
+
+      <v-card>
+        <v-card-title class="headline primary">
+          Request received
+        </v-card-title>
+
+        <v-card-text>
+          Your request was received, we will send you a message to "{{this.email}}" with the result of the operation.
+        </v-card-text>
+
+        <v-divider></v-divider>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="primary"
+            text
+            @click="dialog = false"
+          >
+            Got it
+          </v-btn>
+        </v-card-actions>
+            </v-card>
+            </v-dialog>
         </div>
     </v-form>
   </v-row>
@@ -39,6 +70,7 @@ export default {
   data() {
     return {
       valid: false,
+      dialog: false,
       email: '',
       picker: new Date().toISOString().substr(0, 10),
       emailRules: [
@@ -49,7 +81,7 @@ export default {
   },
   methods: {
     loadDateData(){
-        
+        this.dialog = true;
     },
   },
   mounted() {
