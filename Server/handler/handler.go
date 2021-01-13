@@ -41,11 +41,9 @@ func respondwithJSON(w http.ResponseWriter, code int, payload interface{}) {
 }
 
 func handleInternalServerError(err error, w http.ResponseWriter) {
-	if err != nil {
-		log.Println(errorTag, err)
-		respondwithJSON(w, http.StatusInternalServerError, errorMessage{
-			Code:    internalServerErrorCode,
-			Details: errorsDetails[internalServerErrorCode],
-		})
-	}
+	log.Println(errorTag, err)
+	respondwithJSON(w, http.StatusInternalServerError, errorMessage{
+		Code:    internalServerErrorCode,
+		Details: errorsDetails[internalServerErrorCode],
+	})
 }

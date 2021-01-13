@@ -20,7 +20,7 @@ import (
 	"github.com/segmentio/ksuid"
 )
 
-const errorTag string = "ERROR: "
+const errorTag string = "ERROR:"
 const buyersExternalEndpoint string = "https://kqxty15mpg.execute-api.us-east-1.amazonaws.com/buyers"
 const productsExternalEndpoint string = "https://kqxty15mpg.execute-api.us-east-1.amazonaws.com/products"
 const transactionsExternalEndpoint string = "https://kqxty15mpg.execute-api.us-east-1.amazonaws.com/transactions"
@@ -77,7 +77,7 @@ func (l *LoadDayDataHandler) processLoadDataJob(job model.LoadDataJob) {
 }
 
 func handleLoadDataJobError(err error, thereIsEmail bool, job model.LoadDataJob) {
-	log.Println(errorTag, err)
+	log.Println(errorTag, job.ID, err)
 	if thereIsEmail {
 		sendLoadDataResultEmail(job, getErrorEmailMessage(job))
 	}
@@ -130,11 +130,13 @@ func (l *LoadDayDataHandler) LoadDayData(w http.ResponseWriter, r *http.Request)
 	email := r.URL.Query().Get("email")
 	dateUnixFormat, err := strconv.Atoi(dateParam)
 	if err != nil {
-		respondwithJSON(w, http.StatusOK,
+		log.Println(errorTag, r.Method, r.URL.String(), err)
+		respondwithJSON(w, http.StatusBadRequest,
 			errorMessage{
 				Code:    wrongDateParamFormatCode,
 				Details: errorsDetails[wrongDateParamFormatCode],
 			})
+		return
 	}
 	job := model.LoadDataJob{
 		Date:  dateUnixFormat,
@@ -150,11 +152,13 @@ func (l *LoadDayDataHandler) LoadDayData(w http.ResponseWriter, r *http.Request)
 				ID:      job.ID,
 			})
 	default:
+		log.Println(errorTag, r.Method, r.URL.String(), err)
 		respondwithJSON(w, http.StatusInternalServerError,
 			errorMessage{
 				Code:    queueForLoadDataJobFullCode,
 				Details: errorsDetails[queueForLoadDataJobFullCode],
 			})
+		return
 	}
 }
 

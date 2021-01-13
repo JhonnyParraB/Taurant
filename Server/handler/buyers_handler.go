@@ -22,7 +22,10 @@ type buyerDetailedInformation struct {
 //GetBuyersBasicInformation is used at router
 func (b *BuyersHandler) GetBuyersBasicInformation(w http.ResponseWriter, r *http.Request) {
 	buyers, err := b.buyerRepository.FetchBasicInformation()
-	handleInternalServerError(err, w)
+	if err != nil {
+		handleInternalServerError(err, w)
+		return
+	}
 	respondwithJSON(w, http.StatusOK, buyers)
 }
 
@@ -30,12 +33,21 @@ func (b *BuyersHandler) GetBuyersBasicInformation(w http.ResponseWriter, r *http
 func (b *BuyersHandler) GetBuyerDetailedInformation(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	buyer, err := b.buyerRepository.FindByIdWithTransactions(id)
-	handleInternalServerError(err, w)
+	if err != nil {
+		handleInternalServerError(err, w)
+		return
+	}
 	if buyer != nil {
 		buyersWithSameIP, err := b.buyerRepository.FindBuyersWithSameIP(id)
-		handleInternalServerError(err, w)
+		if err != nil {
+			handleInternalServerError(err, w)
+			return
+		}
 		recommendedProducts, err := b.buyerRepository.FindRecommendedProducts(id)
-		handleInternalServerError(err, w)
+		if err != nil {
+			handleInternalServerError(err, w)
+			return
+		}
 		buyerDetailed := buyerDetailedInformation{
 			Buyer:               *buyer,
 			BuyerWithSameIP:     buyersWithSameIP,
