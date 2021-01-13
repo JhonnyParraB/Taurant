@@ -21,6 +21,8 @@ import (
 )
 
 const errorTag string = "ERROR:"
+const errorEmail = "ERROR"
+const succesfulEmail = "SUCCESFUL"
 const buyersExternalEndpoint string = "https://kqxty15mpg.execute-api.us-east-1.amazonaws.com/buyers"
 const productsExternalEndpoint string = "https://kqxty15mpg.execute-api.us-east-1.amazonaws.com/products"
 const transactionsExternalEndpoint string = "https://kqxty15mpg.execute-api.us-east-1.amazonaws.com/transactions"
@@ -71,7 +73,7 @@ func (l *LoadDayDataHandler) processLoadDataJob(job model.LoadDataJob) {
 		return
 	}
 	if thereIsEmail {
-		sendLoadDataResultEmail(job, getSuccessEmailMessage(job))
+		sendLoadDataResultEmail(job, getSuccessEmailMessage(job), succesfulEmail)
 	}
 	l.laodDataJobRepository.Delete(&job)
 }
@@ -79,7 +81,7 @@ func (l *LoadDayDataHandler) processLoadDataJob(job model.LoadDataJob) {
 func handleLoadDataJobError(err error, thereIsEmail bool, job model.LoadDataJob) {
 	log.Println(errorTag, job.ID, err)
 	if thereIsEmail {
-		sendLoadDataResultEmail(job, getErrorEmailMessage(job))
+		sendLoadDataResultEmail(job, getErrorEmailMessage(job), errorEmail)
 	}
 }
 
@@ -99,7 +101,7 @@ func getErrorEmailMessage(job model.LoadDataJob) []byte {
 	return msg
 }
 
-func sendLoadDataResultEmail(job model.LoadDataJob, msg []byte) {
+func sendLoadDataResultEmail(job model.LoadDataJob, msg []byte, emailType string) {
 	from := "ttaurant@gmail.com"
 	password := "taurant123456"
 
@@ -121,7 +123,7 @@ func sendLoadDataResultEmail(job model.LoadDataJob, msg []byte) {
 	if err != nil {
 		log.Println(errorTag, err)
 	}
-	log.Println("EmailSended: ", job.ID)
+	log.Println("EmailSended: ", job.Email, job.ID, emailType)
 }
 
 //LoadDayData is used at router
@@ -152,7 +154,7 @@ func (l *LoadDayDataHandler) LoadDayData(w http.ResponseWriter, r *http.Request)
 				ID:      job.ID,
 			})
 	default:
-		log.Println(errorTag, r.Method, r.URL.String(), err)
+		log.Println(errorTag, r.Method, r.URL.String(), "The job queue for load data is full")
 		respondwithJSON(w, http.StatusInternalServerError,
 			errorMessage{
 				Code:    queueForLoadDataJobFullCode,
