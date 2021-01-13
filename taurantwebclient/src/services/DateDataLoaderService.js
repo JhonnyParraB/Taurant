@@ -1,8 +1,8 @@
 import http from "../http-common";
 
 class DateDataLoaderService {
-  loadDayData(time) {
-    return http.get("/load-day-data/"+time);
+  loadDayData(time, email) {
+    return http.post("/load-day-data/"+time+"?email="+email);
   }
 }
 

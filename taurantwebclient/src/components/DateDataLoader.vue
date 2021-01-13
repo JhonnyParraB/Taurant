@@ -6,7 +6,7 @@
         </div>
         <div id="datePicker">
             <v-row justify="center">
-                <v-date-picker color="#4b0082" v-model="picker"></v-date-picker>
+                <v-date-picker color="#4b0082" v-model="date"></v-date-picker>
             </v-row>
         </div>
         <div id="emailField">
@@ -19,11 +19,6 @@
         </div>
 
         <div class="text-center">
-    <v-dialog
-      v-model="dialog"
-      width="500"
-    >
-      <template v-slot:activator="{  }">
         <v-btn
             class="mr-4"
             :disabled="!valid"
@@ -33,8 +28,11 @@
         >
           Get Updated
         </v-btn>
-      </template>
 
+      <v-dialog
+        v-model="dialogSuccesful"
+        width="500"
+      >   
       <v-card>
         <v-card-title class="headline primary">
           Request received
@@ -51,13 +49,45 @@
           <v-btn
             color="primary"
             text
-            @click="dialog = false"
+            @click="dialogSuccesful = false"
           >
             Got it
           </v-btn>
         </v-card-actions>
-            </v-card>
-            </v-dialog>
+        </v-card>
+        </v-dialog>
+
+
+
+        <v-dialog
+        v-model="dialogError"
+        width="500"
+      >   
+      <v-card>
+        <v-card-title class="headline error">
+          Request Error
+        </v-card-title>
+
+        <v-card-text>
+          We are responding to many requests. Try it again later. If the problem persists please contact the Taurant administrator.
+        </v-card-text>
+
+        <v-divider></v-divider>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="error"
+            text
+            @click="dialogError = false"
+          >
+            Got it
+          </v-btn>
+        </v-card-actions>
+        </v-card>
+        </v-dialog>
+
+        
         </div>
     </v-form>
   </v-row>
@@ -65,14 +95,16 @@
 
 
 <script>
+import DateDataLoaderService from "../services/DateDataLoaderService";
 export default {
   name: "date-data-loader",
   data() {
     return {
       valid: false,
-      dialog: false,
+      dialogSuccesful: false,
+      dialogError: false,
       email: '',
-      picker: new Date().toISOString().substr(0, 10),
+      date: new Date().toISOString().substr(0, 10),
       emailRules: [
         v => !!v || 'E-mail is required',
         v => /.+@.+/.test(v) || 'E-mail must be valid',
@@ -81,7 +113,14 @@ export default {
   },
   methods: {
     loadDateData(){
-        this.dialog = true;
+        DateDataLoaderService.loadDayData(new Date(this.date).getTime() / 1000, this.email)
+        .then(() => {
+          this.dialogSuccesful = true;
+        })
+        .catch((e) => {
+          console.log(e);
+          this.dialogError = true;
+        });
     },
   },
   mounted() {
