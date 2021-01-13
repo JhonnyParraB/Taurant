@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi"
 )
 
+//BuyersHandler is used at router
 type BuyersHandler struct {
 	buyerRepository repository.BuyerRepositoryDGraph
 }
@@ -18,12 +19,14 @@ type buyerDetailedInformation struct {
 	RecommendedProducts []model.Product `endpoint:"recommended_products,omitempty"`
 }
 
+//GetBuyersBasicInformation is used at router
 func (b *BuyersHandler) GetBuyersBasicInformation(w http.ResponseWriter, r *http.Request) {
 	buyers, err := b.buyerRepository.FetchBasicInformation()
 	handleInternalServerError(err, w)
 	respondwithJSON(w, http.StatusOK, buyers)
 }
 
+//GetBuyerDetailedInformation is used at router
 func (b *BuyersHandler) GetBuyerDetailedInformation(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	buyer, err := b.buyerRepository.FindByIdWithTransactions(id)

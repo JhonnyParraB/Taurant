@@ -25,6 +25,7 @@ const buyersExternalEndpoint string = "https://kqxty15mpg.execute-api.us-east-1.
 const productsExternalEndpoint string = "https://kqxty15mpg.execute-api.us-east-1.amazonaws.com/products"
 const transactionsExternalEndpoint string = "https://kqxty15mpg.execute-api.us-east-1.amazonaws.com/transactions"
 
+//LoadDayDataHandler is used at router
 type LoadDayDataHandler struct {
 	buyerRepository       repository.BuyerRepositoryDGraph
 	productRepository     repository.ProductRepositoryDGraph
@@ -37,6 +38,7 @@ type LoadDayDataHandler struct {
 	iDUIDLocations        map[string]string
 }
 
+//Init is used at router
 func (l *LoadDayDataHandler) Init() {
 	l.jobChan = make(chan model.LoadDataJob, 100)
 	go l.worker(l.jobChan)
@@ -121,6 +123,7 @@ func sendLoadDataResultEmail(job model.LoadDataJob, msg []byte) {
 	}
 }
 
+//LoadDayData is used at router
 func (l *LoadDayDataHandler) LoadDayData(w http.ResponseWriter, r *http.Request) {
 	dateParam := chi.URLParam(r, "date")
 	email := r.URL.Query().Get("email")
