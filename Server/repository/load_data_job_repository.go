@@ -52,10 +52,11 @@ func (b LoadDataJobRepositoryDGraph) Create(loadDataJob *model.LoadDataJob) erro
 	if err != nil {
 		return err
 	}
-	loadDataJob, err = b.FindById(loadDataJob.ID)
+	loadDataJobFound, err := b.FindById(loadDataJob.ID)
 	if err != nil {
 		return err
 	}
+	*(loadDataJob) = *(loadDataJobFound)
 	return nil
 }
 

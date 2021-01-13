@@ -23,10 +23,11 @@ func (b LocationRepositoryDGraph) Create(location *model.Location) error {
 	if err != nil {
 		return err
 	}
-	location, err = b.FindByIP(location.IP)
+	locationFound, err := b.FindByIP(location.IP)
 	if err != nil {
 		return err
 	}
+	*(location) = *(locationFound)
 	return nil
 }
 

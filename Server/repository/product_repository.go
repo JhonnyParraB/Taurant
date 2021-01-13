@@ -56,10 +56,11 @@ func (b ProductRepositoryDGraph) Create(product *model.Product) error {
 	if err != nil {
 		return err
 	}
-	product, err = b.FindById(product.ID)
+	productFound, err := b.FindById(product.ID)
 	if err != nil {
 		return err
 	}
+	*(product) = *(productFound)
 	return nil
 }
 

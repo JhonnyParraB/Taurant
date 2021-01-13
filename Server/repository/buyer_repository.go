@@ -55,10 +55,11 @@ func (b BuyerRepositoryDGraph) Create(buyer *model.Buyer) error {
 	if err != nil {
 		return err
 	}
-	buyer, err = b.FindById(buyer.ID)
+	buyerFound, err := b.FindById(buyer.ID)
 	if err != nil {
 		return err
 	}
+	*(buyer) = *(buyerFound)
 	return nil
 }
 

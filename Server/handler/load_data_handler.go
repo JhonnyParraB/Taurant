@@ -121,6 +121,7 @@ func sendLoadDataResultEmail(job model.LoadDataJob, msg []byte) {
 	if err != nil {
 		log.Println(errorTag, err)
 	}
+	log.Println("EmailSended: ", job.ID)
 }
 
 //LoadDayData is used at router

@@ -23,10 +23,11 @@ func (b TransactionRepositoryDGraph) Create(transaction *model.Transaction) erro
 	if err != nil {
 		return err
 	}
-	transaction, err = b.FindById(transaction.ID)
+	transactionFound, err := b.FindById(transaction.ID)
 	if err != nil {
 		return err
 	}
+	*(transaction) = *(transactionFound)
 	return nil
 }
 
