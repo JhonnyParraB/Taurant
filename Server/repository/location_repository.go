@@ -5,6 +5,7 @@ import (
 
 	"../driver"
 	"../model"
+	"github.com/dgraph-io/dgo"
 	jsoniter "github.com/json-iterator/go"
 )
 
@@ -26,6 +27,16 @@ func (b LocationRepositoryDGraph) Create(location *model.Location) {
 func (b LocationRepositoryDGraph) Update(uid string, location *model.Location) {
 	location.UID = uid
 	driver.RunMutation(location)
+}
+
+func (b LocationRepositoryDGraph) AddCreateToTransaction(txn *dgo.Txn, location *model.Location) {
+	location.UID = "_:" + location.IP
+	driver.AddMutationToTransaction(txn, location)
+}
+
+func (b LocationRepositoryDGraph) AddUpdateToTransaction(txn *dgo.Txn, uid string, location *model.Location) {
+	location.UID = uid
+	driver.AddMutationToTransaction(txn, location)
 }
 
 func (b LocationRepositoryDGraph) FindByIP(ip string) *model.Location {

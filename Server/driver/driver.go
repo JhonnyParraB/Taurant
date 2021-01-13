@@ -32,6 +32,19 @@ func RunAlter(schema string) {
 	handleError(err)
 }
 
+func CreateTransaction() *dgo.Txn {
+	txn := client.NewTxn()
+	return txn
+}
+
+func AddMutationToTransaction(txn *dgo.Txn, object interface{}) {
+	var predicateCaseJSON = jsoniter.Config{TagKey: "predicate"}.Froze()
+	out, err := predicateCaseJSON.Marshal(object)
+	handleError(err)
+	_, err = txn.Mutate(context.Background(), &api.Mutation{SetJson: out})
+	handleError(err)
+}
+
 func RunMutation(object interface{}) {
 	var predicateCaseJSON = jsoniter.Config{TagKey: "predicate"}.Froze()
 	txn := client.NewTxn()

@@ -3,7 +3,9 @@ package handler
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"encoding/csv"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -11,8 +13,10 @@ import (
 	"strconv"
 	"strings"
 
+	"../driver"
 	"../model"
 	"../repository"
+	"github.com/dgraph-io/dgo"
 	"github.com/go-chi/chi"
 	jsoniter "github.com/json-iterator/go"
 )
@@ -47,10 +51,12 @@ func (l *LoadDayDataHandler) worker(jobChan <-chan loadDataJob) {
 }
 
 func (l *LoadDayDataHandler) processLoadDataJob(job loadDataJob) {
-	l.loadBuyers(job.date)
-	l.loadProducts(job.date)
-	l.loadTransactions(job.date)
-	print("CARGADOS")
+	txn := driver.CreateTransaction()
+	defer txn.Discard(context.Background())
+	l.loadBuyers(txn, job.date)
+	l.loadProducts(txn, job.date)
+	l.loadTransactions(txn, job.date)
+	txn.Commit(context.Background())
 }
 
 func (l *LoadDayDataHandler) LoadDayData(w http.ResponseWriter, r *http.Request) {
@@ -68,7 +74,7 @@ func (l *LoadDayDataHandler) LoadDayData(w http.ResponseWriter, r *http.Request)
 	print(a)
 }
 
-func (l *LoadDayDataHandler) loadBuyers(date int) {
+func (l *LoadDayDataHandler) loadBuyers(txn *dgo.Txn, date int) {
 	var endpointCaseJSON = jsoniter.Config{TagKey: "endpoint"}.Froze()
 	response, err := http.Get("https://kqxty15mpg.execute-api.us-east-1.amazonaws.com/buyers")
 	handleError(err)
@@ -78,15 +84,15 @@ func (l *LoadDayDataHandler) loadBuyers(date int) {
 	for _, buyer := range buyers {
 		buyerFound := l.buyerRepository.FindById(buyer.ID)
 		if buyerFound == nil {
-			l.buyerRepository.Create(&buyer)
+			l.buyerRepository.AddCreateToTransaction(txn, &buyer)
 		} else {
-			l.buyerRepository.Update(buyerFound.UID, &buyer)
+			l.buyerRepository.AddUpdateToTransaction(txn, buyerFound.UID, &buyer)
 		}
 		l.iDUIDBuyers[buyer.ID] = buyer.UID
 	}
 }
 
-func (l *LoadDayDataHandler) loadProducts(date int) {
+func (l *LoadDayDataHandler) loadProducts(txn *dgo.Txn, date int) {
 	response, err := http.Get("https://kqxty15mpg.execute-api.us-east-1.amazonaws.com/products")
 	handleError(err)
 	data, _ := ioutil.ReadAll(response.Body)
@@ -107,29 +113,36 @@ func (l *LoadDayDataHandler) loadProducts(date int) {
 		}
 		productFound := l.productRepository.FindById(product.ID)
 		if productFound == nil {
-			l.productRepository.Create(&product)
+			l.productRepository.AddCreateToTransaction(txn, &product)
 		} else {
-			l.productRepository.Update(productFound.UID, &product)
+			l.productRepository.AddUpdateToTransaction(txn, productFound.UID, &product)
 		}
 		l.iDUIDProducts[product.ID] = product.UID
 	}
 }
 
-func (l *LoadDayDataHandler) loadTransactions(date int) {
+func (l *LoadDayDataHandler) loadTransactions(txn *dgo.Txn, date int) {
 	response, err := http.Get("https://kqxty15mpg.execute-api.us-east-1.amazonaws.com/transactions")
 	data, _ := ioutil.ReadAll(response.Body)
 	bytesReader := bytes.NewReader(data)
 	scanner := bufio.NewScanner(bytesReader)
 	scanner.Split(splitAt("\000\000"))
+	a := 0
 	for scanner.Scan() {
 		record := scanner.Text()
 		recordFields := strings.Split(record, "\000")
+
+		a++
+		if a%500 == 0 {
+			fmt.Printf("%d   --   "+record+"\n", a)
+		}
 
 		//set buyer
 		buyerID := recordFields[1]
 		var buyer model.Buyer
 		if uid, exists := l.iDUIDBuyers[buyerID]; exists {
 			buyer = model.Buyer{
+
 				UID: uid,
 			}
 		}
@@ -164,7 +177,7 @@ func (l *LoadDayDataHandler) loadTransactions(date int) {
 		}
 		locationFound := l.locationRepository.FindByIP(IP)
 		if locationFound == nil {
-			l.locationRepository.Create(&location)
+			l.locationRepository.AddCreateToTransaction(txn, &location)
 		} else {
 			location.UID = locationFound.UID
 		}
@@ -179,9 +192,9 @@ func (l *LoadDayDataHandler) loadTransactions(date int) {
 
 		transactionFound := l.transactionRepository.FindById(transaction.ID)
 		if transactionFound == nil {
-			l.transactionRepository.Create(&transaction)
+			l.transactionRepository.AddCreateToTransaction(txn, &transaction)
 		} else {
-			l.transactionRepository.Update(transactionFound.UID, &transaction)
+			l.transactionRepository.AddUpdateToTransaction(txn, transactionFound.UID, &transaction)
 		}
 	}
 	handleError(err)

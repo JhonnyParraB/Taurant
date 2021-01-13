@@ -5,6 +5,7 @@ import (
 
 	"../driver"
 	"../model"
+	"github.com/dgraph-io/dgo"
 	jsoniter "github.com/json-iterator/go"
 )
 
@@ -26,6 +27,16 @@ func (b TransactionRepositoryDGraph) Create(transaction *model.Transaction) {
 func (b TransactionRepositoryDGraph) Update(uid string, transaction *model.Transaction) {
 	transaction.UID = uid
 	driver.RunMutation(transaction)
+}
+
+func (b TransactionRepositoryDGraph) AddCreateToTransaction(txn *dgo.Txn, transaction *model.Transaction) {
+	transaction.UID = "_:" + transaction.ID
+	driver.AddMutationToTransaction(txn, transaction)
+}
+
+func (b TransactionRepositoryDGraph) AddUpdateToTransaction(txn *dgo.Txn, uid string, transaction *model.Transaction) {
+	transaction.UID = uid
+	driver.AddMutationToTransaction(txn, transaction)
 }
 
 func (b TransactionRepositoryDGraph) FindById(transaction_id string) *model.Transaction {
