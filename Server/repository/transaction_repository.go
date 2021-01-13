@@ -17,18 +17,29 @@ type TransactionRepository interface {
 type TransactionRepositoryDGraph struct {
 }
 
-func (b TransactionRepositoryDGraph) Create(transaction *model.Transaction) {
+func (b TransactionRepositoryDGraph) Create(transaction *model.Transaction) error {
 	transaction.UID = "_:" + transaction.ID
-	driver.RunMutation(transaction)
-	*transaction = *(b.FindById(transaction.ID))
+	err := driver.RunMutation(transaction)
+	if err != nil {
+		return err
+	}
+	transaction, err = b.FindById(transaction.ID)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func (b TransactionRepositoryDGraph) Update(uid string, transaction *model.Transaction) {
+func (b TransactionRepositoryDGraph) Update(uid string, transaction *model.Transaction) error {
 	transaction.UID = uid
-	driver.RunMutation(transaction)
+	err := driver.RunMutation(transaction)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func (b TransactionRepositoryDGraph) FindById(transaction_id string) *model.Transaction {
+func (b TransactionRepositoryDGraph) FindById(transaction_id string) (*model.Transaction, error) {
 	query :=
 		`
 		{
@@ -42,15 +53,23 @@ func (b TransactionRepositoryDGraph) FindById(transaction_id string) *model.Tran
 			}
 		}	
 	`
-	res := driver.RunQuery(query)
+	res, err := driver.RunQuery(query)
+	if err != nil {
+		return nil, err
+	}
 	var transactionsFound []model.Transaction
 	var objmap map[string]json.RawMessage
-	err := json.Unmarshal(res, &objmap)
+	err = json.Unmarshal(res, &objmap)
+	if err != nil {
+		return nil, err
+	}
 	var predicateCaseJSON = jsoniter.Config{TagKey: "predicate"}.Froze()
 	err = predicateCaseJSON.Unmarshal(objmap["findTransactionById"], &transactionsFound)
-	handleError(err)
-	if len(transactionsFound) > 0 {
-		return &transactionsFound[0]
+	if err != nil {
+		return nil, err
 	}
-	return nil
+	if len(transactionsFound) > 0 {
+		return &transactionsFound[0], nil
+	}
+	return nil, nil
 }

@@ -1,5 +1,15 @@
 #This script load the schema for Taurant DGraph Database
 
+type LoadDataJob {
+  load_data_job_id
+  load_data_job_date
+  load_data_job_email
+}
+
+load_data_job_id: string @index(exact) .
+load_data_job_date: int .
+load_data_job_email: string @index(exact) .
+
 
 type Buyer {
   buyer_id

@@ -2,7 +2,6 @@ package repository
 
 import (
 	"encoding/json"
-	"log"
 
 	"../driver"
 	"../model"
@@ -20,7 +19,7 @@ type BuyerRepository interface {
 type BuyerRepositoryDGraph struct {
 }
 
-func (b BuyerRepositoryDGraph) FetchBasicInformation() []model.Buyer {
+func (b BuyerRepositoryDGraph) FetchBasicInformation() ([]model.Buyer, error) {
 	query :=
 		`
 		{
@@ -32,28 +31,47 @@ func (b BuyerRepositoryDGraph) FetchBasicInformation() []model.Buyer {
 			}
 		}	
 	`
-	res := driver.RunQuery(query)
+	res, err := driver.RunQuery(query)
+	if err != nil {
+		return nil, err
+	}
 	var buyersFound []model.Buyer
 	var objmap map[string]json.RawMessage
-	err := json.Unmarshal(res, &objmap)
-	handleError(err)
+	err = json.Unmarshal(res, &objmap)
+	if err != nil {
+		return nil, err
+	}
 	var predicateCaseJSON = jsoniter.Config{TagKey: "predicate"}.Froze()
 	err = predicateCaseJSON.Unmarshal(objmap["findAllBuyers"], &buyersFound)
-	return buyersFound
+	if err != nil {
+		return nil, err
+	}
+	return buyersFound, nil
 }
 
-func (b BuyerRepositoryDGraph) Create(buyer *model.Buyer) {
+func (b BuyerRepositoryDGraph) Create(buyer *model.Buyer) error {
 	buyer.UID = "_:" + buyer.ID
-	driver.RunMutation(buyer)
-	*buyer = *(b.FindById(buyer.ID))
+	err := driver.RunMutation(buyer)
+	if err != nil {
+		return err
+	}
+	buyer, err = b.FindById(buyer.ID)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func (b BuyerRepositoryDGraph) Update(uid string, buyer *model.Buyer) {
+func (b BuyerRepositoryDGraph) Update(uid string, buyer *model.Buyer) error {
 	buyer.UID = uid
-	driver.RunMutation(buyer)
+	err := driver.RunMutation(buyer)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func (b BuyerRepositoryDGraph) FindById(buyer_id string) *model.Buyer {
+func (b BuyerRepositoryDGraph) FindById(buyer_id string) (*model.Buyer, error) {
 	query :=
 		`
 		{
@@ -63,23 +81,30 @@ func (b BuyerRepositoryDGraph) FindById(buyer_id string) *model.Buyer {
 				buyer_name
 				age
 			}
-		}	
+		}
 	`
-	res := driver.RunQuery(query)
+	res, err := driver.RunQuery(query)
+	if err != nil {
+		return nil, err
+	}
 	var buyersFound []model.Buyer
 	var objmap map[string]json.RawMessage
-	err := json.Unmarshal(res, &objmap)
-	handleError(err)
+	err = json.Unmarshal(res, &objmap)
+	if err != nil {
+		return nil, err
+	}
 	var predicateCaseJSON = jsoniter.Config{TagKey: "predicate"}.Froze()
 	err = predicateCaseJSON.Unmarshal(objmap["findBuyerById"], &buyersFound)
-	handleError(err)
-	if len(buyersFound) > 0 {
-		return &buyersFound[0]
+	if err != nil {
+		return nil, err
 	}
-	return nil
+	if len(buyersFound) > 0 {
+		return &buyersFound[0], nil
+	}
+	return nil, nil
 }
 
-func (b BuyerRepositoryDGraph) FindByIdWithTransactions(buyer_id string) *model.Buyer {
+func (b BuyerRepositoryDGraph) FindByIdWithTransactions(buyer_id string) (*model.Buyer, error) {
 	query :=
 		`
 		{
@@ -106,21 +131,28 @@ func (b BuyerRepositoryDGraph) FindByIdWithTransactions(buyer_id string) *model.
 			}
 		}	
 	`
-	res := driver.RunQuery(query)
+	res, err := driver.RunQuery(query)
+	if err != nil {
+		return nil, err
+	}
 	var buyersFound []model.Buyer
 	var objmap map[string]json.RawMessage
-	err := json.Unmarshal(res, &objmap)
-	handleError(err)
+	err = json.Unmarshal(res, &objmap)
+	if err != nil {
+		return nil, err
+	}
 	var predicateCaseJSON = jsoniter.Config{TagKey: "predicate"}.Froze()
 	err = predicateCaseJSON.Unmarshal(objmap["findBuyerById"], &buyersFound)
-	handleError(err)
-	if len(buyersFound) > 0 {
-		return &buyersFound[0]
+	if err != nil {
+		return nil, err
 	}
-	return nil
+	if len(buyersFound) > 0 {
+		return &buyersFound[0], nil
+	}
+	return nil, nil
 }
 
-func (b BuyerRepositoryDGraph) FindBuyersWithSameIP(buyerID string) []model.Buyer {
+func (b BuyerRepositoryDGraph) FindBuyersWithSameIP(buyerID string) ([]model.Buyer, error) {
 	query :=
 		`
 		{
@@ -148,18 +180,25 @@ func (b BuyerRepositoryDGraph) FindBuyersWithSameIP(buyerID string) []model.Buye
 			} 
 		}	
 	`
-	res := driver.RunQuery(query)
+	res, err := driver.RunQuery(query)
+	if err != nil {
+		return nil, err
+	}
 	var buyersWithSameIP []model.Buyer
 	var objmap map[string]json.RawMessage
-	err := json.Unmarshal(res, &objmap)
-	handleError(err)
+	err = json.Unmarshal(res, &objmap)
+	if err != nil {
+		return nil, err
+	}
 	var predicateCaseJSON = jsoniter.Config{TagKey: "predicate"}.Froze()
 	err = predicateCaseJSON.Unmarshal(objmap["BuyersWithSameIP"], &buyersWithSameIP)
-	handleError(err)
-	return buyersWithSameIP
+	if err != nil {
+		return nil, err
+	}
+	return buyersWithSameIP, nil
 }
 
-func (b BuyerRepositoryDGraph) FindRecommendedProducts(buyerID string) []model.Product {
+func (b BuyerRepositoryDGraph) FindRecommendedProducts(buyerID string) ([]model.Product, error) {
 	query :=
 		`
 		{
@@ -183,19 +222,20 @@ func (b BuyerRepositoryDGraph) FindRecommendedProducts(buyerID string) []model.P
 			}
   		}	
 	`
-	res := driver.RunQuery(query)
+	res, err := driver.RunQuery(query)
+	if err != nil {
+		return nil, err
+	}
 	var recommendedProducts []model.Product
 	var objmap map[string]json.RawMessage
-	err := json.Unmarshal(res, &objmap)
-	handleError(err)
+	err = json.Unmarshal(res, &objmap)
+	if err != nil {
+		return nil, err
+	}
 	var predicateCaseJSON = jsoniter.Config{TagKey: "predicate"}.Froze()
 	err = predicateCaseJSON.Unmarshal(objmap["FindRecommendedProducts"], &recommendedProducts)
-	handleError(err)
-	return recommendedProducts
-}
-
-func handleError(err interface{}) {
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
+	return recommendedProducts, nil
 }

@@ -25,31 +25,49 @@ func newClient() *dgo.Dgraph {
 	)
 }
 
-func RunAlter(schema string) {
+func RunAlter(schema string) error {
 	err := client.Alter(context.Background(), &api.Operation{
 		Schema: schema,
 	})
-	handleError(err)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func RunMutation(object interface{}) {
+func RunMutation(object interface{}) error {
 	var predicateCaseJSON = jsoniter.Config{TagKey: "predicate"}.Froze()
 	txn := client.NewTxn()
 	out, err := predicateCaseJSON.Marshal(object)
-	handleError(err)
+	if err != nil {
+		return err
+	}
 	_, err = txn.Mutate(context.Background(), &api.Mutation{SetJson: out, CommitNow: true})
-	handleError(err)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func RunQuery(query string) []byte {
+func RunMutationForDelete(object interface{}) error {
+	var predicateCaseJSON = jsoniter.Config{TagKey: "predicate"}.Froze()
+	txn := client.NewTxn()
+	out, err := predicateCaseJSON.Marshal(object)
+	if err != nil {
+		return err
+	}
+	_, err = txn.Mutate(context.Background(), &api.Mutation{DeleteJson: out, CommitNow: true})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func RunQuery(query string) ([]byte, error) {
 	txn := client.NewTxn()
 	res, err := txn.Query(context.Background(), query)
-	handleError(err)
-	return res.GetJson()
-}
-
-func handleError(err interface{}) {
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
+	return res.GetJson(), nil
 }

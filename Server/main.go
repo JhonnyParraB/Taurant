@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
@@ -12,11 +11,8 @@ import (
 
 func main() {
 	router := getRouter()
-	fmt.Println("Server listen at : 4200")
-	http.ListenAndServe(":4200", router)
-}
-
-func handleError(err interface{}) {
+	log.Println("Server listen at : 4200")
+	err := http.ListenAndServe(":4200", router)
 	if err != nil {
 		log.Fatal(err)
 	}

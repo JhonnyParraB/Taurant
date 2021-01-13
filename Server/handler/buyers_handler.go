@@ -6,43 +6,43 @@ import (
 	"../model"
 	"../repository"
 	"github.com/go-chi/chi"
-	jsoniter "github.com/json-iterator/go"
 )
 
 type BuyersHandler struct {
 	buyerRepository repository.BuyerRepositoryDGraph
 }
 
-type BuyerDetailedInformation struct {
+type buyerDetailedInformation struct {
 	Buyer               model.Buyer     `endpoint:"buyer,omitempty"`
 	BuyerWithSameIP     []model.Buyer   `endpoint:"buyers_with_same_ip,omitempty"`
 	RecommendedProducts []model.Product `endpoint:"recommended_products,omitempty"`
 }
 
 func (b *BuyersHandler) GetBuyersBasicInformation(w http.ResponseWriter, r *http.Request) {
-	respondwithJSON(w, http.StatusOK, b.buyerRepository.FetchBasicInformation())
+	buyers, err := b.buyerRepository.FetchBasicInformation()
+	handleInternalServerError(err, w)
+	respondwithJSON(w, http.StatusOK, buyers)
 }
 
 func (b *BuyersHandler) GetBuyerDetailedInformation(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
-	buyer := b.buyerRepository.FindByIdWithTransactions(id)
+	buyer, err := b.buyerRepository.FindByIdWithTransactions(id)
+	handleInternalServerError(err, w)
 	if buyer != nil {
-		buyersWithSameIP := b.buyerRepository.FindBuyersWithSameIP(id)
-		recommendedProducts := b.buyerRepository.FindRecommendedProducts(id)
-		buyerDetailed := BuyerDetailedInformation{
+		buyersWithSameIP, err := b.buyerRepository.FindBuyersWithSameIP(id)
+		handleInternalServerError(err, w)
+		recommendedProducts, err := b.buyerRepository.FindRecommendedProducts(id)
+		handleInternalServerError(err, w)
+		buyerDetailed := buyerDetailedInformation{
 			Buyer:               *buyer,
 			BuyerWithSameIP:     buyersWithSameIP,
 			RecommendedProducts: recommendedProducts,
 		}
 		respondwithJSON(w, http.StatusOK, buyerDetailed)
+	} else {
+		respondwithJSON(w, http.StatusNotFound, errorMessage{
+			Code:    buyerNotFoundCode,
+			Details: errorsDetails[buyerNotFoundCode],
+		})
 	}
-}
-
-func respondwithJSON(w http.ResponseWriter, code int, payload interface{}) {
-	var endpointCaseJSON = jsoniter.Config{TagKey: "endpoint"}.Froze()
-	response, _ := endpointCaseJSON.Marshal(payload)
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(code)
-	w.Write(response)
 }

@@ -4,10 +4,12 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/csv"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/smtp"
 	"strconv"
 	"strings"
 
@@ -15,68 +17,157 @@ import (
 	"../repository"
 	"github.com/go-chi/chi"
 	jsoniter "github.com/json-iterator/go"
+	"github.com/segmentio/ksuid"
 )
+
+const errorTag string = "ERROR: "
+const buyersExternalEndpoint string = "https://kqxty15mpg.execute-api.us-east-1.amazonaws.com/buyers"
+const productsExternalEndpoint string = "https://kqxty15mpg.execute-api.us-east-1.amazonaws.com/products"
+const transactionsExternalEndpoint string = "https://kqxty15mpg.execute-api.us-east-1.amazonaws.com/transactions"
 
 type LoadDayDataHandler struct {
 	buyerRepository       repository.BuyerRepositoryDGraph
 	productRepository     repository.ProductRepositoryDGraph
 	transactionRepository repository.TransactionRepositoryDGraph
 	locationRepository    repository.LocationRepositoryDGraph
-	jobChan               chan loadDataJob
+	laodDataJobRepository repository.LoadDataJobRepositoryDGraph
+	jobChan               chan model.LoadDataJob
 	iDUIDBuyers           map[string]string
 	iDUIDProducts         map[string]string
 	iDUIDLocations        map[string]string
 }
 
-type loadDataJob struct {
-	date int
-}
-
 func (l *LoadDayDataHandler) Init() {
-	l.jobChan = make(chan loadDataJob, 100)
+	l.jobChan = make(chan model.LoadDataJob, 100)
 	go l.worker(l.jobChan)
 	l.iDUIDBuyers = make(map[string]string)
 	l.iDUIDProducts = make(map[string]string)
 	l.iDUIDLocations = make(map[string]string)
 }
 
-func (l *LoadDayDataHandler) worker(jobChan <-chan loadDataJob) {
+func (l *LoadDayDataHandler) worker(jobChan <-chan model.LoadDataJob) {
 	for job := range jobChan {
 		l.processLoadDataJob(job)
 	}
 }
 
-func (l *LoadDayDataHandler) processLoadDataJob(job loadDataJob) {
-	l.loadBuyers(job.date)
-	l.loadProducts(job.date)
-	l.loadTransactions(job.date)
-	print("CARGADOS")
+func (l *LoadDayDataHandler) processLoadDataJob(job model.LoadDataJob) {
+	thereIsEmail := job.Email != ""
+	err := l.loadBuyers(job.Date)
+	if err != nil {
+		handleLoadDataJobError(err, thereIsEmail, job)
+		return
+	}
+	err = l.loadProducts(job.Date)
+	if err != nil {
+		handleLoadDataJobError(err, thereIsEmail, job)
+		return
+	}
+	err = l.loadTransactions(job.Date)
+	if err != nil {
+		handleLoadDataJobError(err, thereIsEmail, job)
+		return
+	}
+	if thereIsEmail {
+		sendLoadDataResultEmail(job, getSuccessEmailMessage(job))
+	}
+	l.laodDataJobRepository.Delete(&job)
+}
+
+func handleLoadDataJobError(err error, thereIsEmail bool, job model.LoadDataJob) {
+	log.Println(errorTag, err)
+	if thereIsEmail {
+		sendLoadDataResultEmail(job, getErrorEmailMessage(job))
+	}
+}
+
+func getSuccessEmailMessage(job model.LoadDataJob) []byte {
+	msg := []byte(fmt.Sprintf("To: %s\r\n", job.Email) +
+		fmt.Sprintf("Subject: Load Data Request %s succesfully completed!\r\n", job.ID) +
+		"\r\n" +
+		fmt.Sprintf("Your load data request for %v time was succesfully completed.\r\n -Taurant\r\n", job.Date))
+	return msg
+}
+
+func getErrorEmailMessage(job model.LoadDataJob) []byte {
+	msg := []byte(fmt.Sprintf("To: %s\r\n", job.Email) +
+		fmt.Sprintf("Subject: Error While Processing Load Data Request %s\r\n", job.ID) +
+		"\r\n" +
+		fmt.Sprintf("There was an error while processing your load data request for %v. Please contact Taurant's Administrator.\r\n -Taurant\r\n", job.Date))
+	return msg
+}
+
+func sendLoadDataResultEmail(job model.LoadDataJob, msg []byte) {
+	from := "ttaurant@gmail.com"
+	password := "taurant123456"
+
+	to := []string{
+		job.Email,
+	}
+
+	// smtp server configuration.
+	smtpHost := "smtp.gmail.com"
+	smtpPort := "587"
+
+	// Message.
+
+	// Authentication.
+	auth := smtp.PlainAuth("", from, password, smtpHost)
+
+	// Sending email.
+	err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, to, msg)
+	if err != nil {
+		log.Println(errorTag, err)
+	}
 }
 
 func (l *LoadDayDataHandler) LoadDayData(w http.ResponseWriter, r *http.Request) {
 	dateParam := chi.URLParam(r, "date")
+	email := r.URL.Query().Get("email")
 	dateUnixFormat, err := strconv.Atoi(dateParam)
-	handleError(err)
-	a := true
-	job := loadDataJob{date: dateUnixFormat}
+	if err != nil {
+		respondwithJSON(w, http.StatusOK,
+			errorMessage{
+				Code:    wrongDateParamFormatCode,
+				Details: errorsDetails[wrongDateParamFormatCode],
+			})
+	}
+	job := model.LoadDataJob{
+		Date:  dateUnixFormat,
+		ID:    ksuid.New().String(),
+		Email: email,
+	}
+	l.laodDataJobRepository.Create(&job)
 	select {
 	case l.jobChan <- job:
-		a = true
+		respondwithJSON(w, http.StatusOK,
+			responseMessage{
+				Details: fmt.Sprintf("Request for load data for %v time has been received", job.Date),
+				ID:      job.ID,
+			})
 	default:
-		a = false
+		respondwithJSON(w, http.StatusInternalServerError,
+			errorMessage{
+				Code:    queueForLoadDataJobFullCode,
+				Details: errorsDetails[queueForLoadDataJobFullCode],
+			})
 	}
-	print(a)
 }
 
-func (l *LoadDayDataHandler) loadBuyers(date int) {
+func (l *LoadDayDataHandler) loadBuyers(date int) error {
 	var endpointCaseJSON = jsoniter.Config{TagKey: "endpoint"}.Froze()
-	response, err := http.Get("https://kqxty15mpg.execute-api.us-east-1.amazonaws.com/buyers")
-	handleError(err)
+	response, err := http.Get(buyersExternalEndpoint)
+	if err != nil {
+		return err
+	}
 	data, _ := ioutil.ReadAll(response.Body)
 	var buyers []model.Buyer
 	err = endpointCaseJSON.Unmarshal(data, &buyers)
 	for _, buyer := range buyers {
-		buyerFound := l.buyerRepository.FindById(buyer.ID)
+		buyerFound, err := l.buyerRepository.FindById(buyer.ID)
+		if err != nil {
+			return err
+		}
 		if buyerFound == nil {
 			l.buyerRepository.Create(&buyer)
 		} else {
@@ -84,11 +175,14 @@ func (l *LoadDayDataHandler) loadBuyers(date int) {
 		}
 		l.iDUIDBuyers[buyer.ID] = buyer.UID
 	}
+	return nil
 }
 
-func (l *LoadDayDataHandler) loadProducts(date int) {
-	response, err := http.Get("https://kqxty15mpg.execute-api.us-east-1.amazonaws.com/products")
-	handleError(err)
+func (l *LoadDayDataHandler) loadProducts(date int) error {
+	response, err := http.Get(productsExternalEndpoint)
+	if err != nil {
+		return err
+	}
 	data, _ := ioutil.ReadAll(response.Body)
 	bytesReader := bytes.NewReader(data)
 	csvReader := csv.NewReader(bytesReader)
@@ -99,13 +193,18 @@ func (l *LoadDayDataHandler) loadProducts(date int) {
 			break
 		}
 		price, err := strconv.Atoi(recordFields[2])
-		handleError(err)
+		if err != nil {
+			return err
+		}
 		product := model.Product{
 			ID:    recordFields[0],
 			Name:  recordFields[1],
 			Price: price,
 		}
-		productFound := l.productRepository.FindById(product.ID)
+		productFound, err := l.productRepository.FindById(product.ID)
+		if err != nil {
+			return err
+		}
 		if productFound == nil {
 			l.productRepository.Create(&product)
 		} else {
@@ -113,11 +212,18 @@ func (l *LoadDayDataHandler) loadProducts(date int) {
 		}
 		l.iDUIDProducts[product.ID] = product.UID
 	}
+	return nil
 }
 
-func (l *LoadDayDataHandler) loadTransactions(date int) {
-	response, err := http.Get("https://kqxty15mpg.execute-api.us-east-1.amazonaws.com/transactions")
-	data, _ := ioutil.ReadAll(response.Body)
+func (l *LoadDayDataHandler) loadTransactions(date int) error {
+	response, err := http.Get(transactionsExternalEndpoint)
+	if err != nil {
+		return err
+	}
+	data, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return err
+	}
 	bytesReader := bytes.NewReader(data)
 	scanner := bufio.NewScanner(bytesReader)
 	scanner.Split(splitAt("\000\000"))
@@ -162,7 +268,10 @@ func (l *LoadDayDataHandler) loadTransactions(date int) {
 		location := model.Location{
 			IP: IP,
 		}
-		locationFound := l.locationRepository.FindByIP(IP)
+		locationFound, err := l.locationRepository.FindByIP(IP)
+		if err != nil {
+			return err
+		}
 		if locationFound == nil {
 			l.locationRepository.Create(&location)
 		} else {
@@ -177,14 +286,17 @@ func (l *LoadDayDataHandler) loadTransactions(date int) {
 			ProductOrders: &productOrders,
 		}
 
-		transactionFound := l.transactionRepository.FindById(transaction.ID)
+		transactionFound, err := l.transactionRepository.FindById(transaction.ID)
+		if err != nil {
+			return err
+		}
 		if transactionFound == nil {
 			l.transactionRepository.Create(&transaction)
 		} else {
 			l.transactionRepository.Update(transactionFound.UID, &transaction)
 		}
 	}
-	handleError(err)
+	return nil
 }
 
 func splitAt(substring string) func(data []byte, atEOF bool) (advance int, token []byte, err error) {
@@ -229,10 +341,4 @@ func dupCount(list []model.Product) map[string]int {
 		}
 	}
 	return duplicateFrequency
-}
-
-func handleError(err interface{}) {
-	if err != nil {
-		log.Fatal(err)
-	}
 }

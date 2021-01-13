@@ -17,18 +17,29 @@ type LocationRepository interface {
 type LocationRepositoryDGraph struct {
 }
 
-func (b LocationRepositoryDGraph) Create(location *model.Location) {
+func (b LocationRepositoryDGraph) Create(location *model.Location) error {
 	location.UID = "_:" + location.IP
-	driver.RunMutation(location)
-	*location = *(b.FindByIP(location.IP))
+	err := driver.RunMutation(location)
+	if err != nil {
+		return err
+	}
+	location, err = b.FindByIP(location.IP)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func (b LocationRepositoryDGraph) Update(uid string, location *model.Location) {
+func (b LocationRepositoryDGraph) Update(uid string, location *model.Location) error {
 	location.UID = uid
-	driver.RunMutation(location)
+	err := driver.RunMutation(location)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func (b LocationRepositoryDGraph) FindByIP(ip string) *model.Location {
+func (b LocationRepositoryDGraph) FindByIP(ip string) (*model.Location, error) {
 	query :=
 		`
 		{
@@ -38,16 +49,23 @@ func (b LocationRepositoryDGraph) FindByIP(ip string) *model.Location {
 			}
 		}	
 	`
-	res := driver.RunQuery(query)
+	res, err := driver.RunQuery(query)
+	if err != nil {
+		return nil, err
+	}
 	var locationsFound []model.Location
 	var objmap map[string]json.RawMessage
-	err := json.Unmarshal(res, &objmap)
-	handleError(err)
+	err = json.Unmarshal(res, &objmap)
+	if err != nil {
+		return nil, err
+	}
 	var predicateCaseJSON = jsoniter.Config{TagKey: "predicate"}.Froze()
 	err = predicateCaseJSON.Unmarshal(objmap["findLocationByIP"], &locationsFound)
-	handleError(err)
-	if len(locationsFound) > 0 {
-		return &locationsFound[0]
+	if err != nil {
+		return nil, err
 	}
-	return nil
+	if len(locationsFound) > 0 {
+		return &locationsFound[0], nil
+	}
+	return nil, nil
 }
