@@ -1,12 +1,12 @@
-package main
+package router
 
 import (
-	"./handler"
+	"../handler"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 )
 
-func getRouter() *chi.Mux {
+func GetRouter() *chi.Mux {
 	router := chi.NewRouter()
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.Logger)
