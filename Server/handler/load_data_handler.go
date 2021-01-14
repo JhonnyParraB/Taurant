@@ -75,7 +75,11 @@ func (l *LoadDayDataHandler) processLoadDataJob(job model.LoadDataJob) {
 	if thereIsEmail {
 		sendLoadDataResultEmail(job, getSuccessEmailMessage(job), succesfulEmail)
 	}
-	l.laodDataJobRepository.Delete(&job)
+	err = l.laodDataJobRepository.Delete(&job)
+	if err != nil {
+		log.Println(errorTag, "Job completed but there was an error removing it from the database", job.ID, err)
+		return
+	}
 }
 
 func handleLoadDataJobError(err error, thereIsEmail bool, job model.LoadDataJob) {
@@ -145,7 +149,16 @@ func (l *LoadDayDataHandler) LoadDayData(w http.ResponseWriter, r *http.Request)
 		ID:    ksuid.New().String(),
 		Email: email,
 	}
-	l.laodDataJobRepository.Create(&job)
+	err = l.laodDataJobRepository.Create(&job)
+	if err != nil {
+		log.Println(errorTag, r.Method, r.URL.String(), "An error occurred when trying to save the job in the database", err)
+		respondwithJSON(w, http.StatusInternalServerError,
+			errorMessage{
+				Code:    internalServerErrorCode,
+				Details: errorsDetails[internalServerErrorCode],
+			})
+		return
+	}
 	select {
 	case l.jobChan <- job:
 		respondwithJSON(w, http.StatusOK,
@@ -303,6 +316,7 @@ func (l *LoadDayDataHandler) loadTransactions(date int) error {
 		if transactionFound == nil {
 			l.transactionRepository.Create(&transaction)
 		} else {
+			l.transactionRepository.DeleteProductOrders(transactionFound.ProductOrders)
 			l.transactionRepository.Update(transactionFound.UID, &transaction)
 		}
 	}

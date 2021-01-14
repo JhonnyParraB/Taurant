@@ -12,6 +12,7 @@ type TransactionRepository interface {
 	Create(transaction *model.Transaction) string
 	FindById(transaction_id string) *model.Transaction
 	Update(uid string, transaction *model.Transaction) string
+	DeleteProductOrders(productOrders []*model.ProductOrder)
 }
 
 type TransactionRepositoryDGraph struct {
@@ -47,10 +48,22 @@ func (b TransactionRepositoryDGraph) FindById(transaction_id string) (*model.Tra
 			findTransactionById(func: eq(transaction_id, "` + transaction_id + `"), first: 1) {
 				uid
 				transaction_id
-				is_made_by
+				is_made_by {
+					uid
+					id
+					name
+				}
 				device
 				ip
-				trade
+				include{
+					trade{
+							uid
+							product_id
+							product_name
+							price
+					}
+					quantity
+				}
 			}
 		}	
 	`
@@ -73,4 +86,12 @@ func (b TransactionRepositoryDGraph) FindById(transaction_id string) (*model.Tra
 		return &transactionsFound[0], nil
 	}
 	return nil, nil
+}
+
+func (b TransactionRepositoryDGraph) DeleteProductOrders(productOrders *[]model.ProductOrder) error {
+	err := driver.RunMutationForDelete(productOrders)
+	if err != nil {
+		return err
+	}
+	return nil
 }
