@@ -134,7 +134,7 @@ func sendLoadDataResultEmail(job model.LoadDataJob, msg []byte, emailType string
 func (l *LoadDayDataHandler) LoadDayData(w http.ResponseWriter, r *http.Request) {
 	dateParam := chi.URLParam(r, "date")
 	email := r.URL.Query().Get("email")
-	dateUnixFormat, err := strconv.Atoi(dateParam)
+	dateUnixFormat, err := strconv.ParseInt(dateParam, 10, 64)
 	if err != nil {
 		log.Println(errorTag, r.Method, r.URL.String(), err)
 		respondwithJSON(w, http.StatusBadRequest,
@@ -177,9 +177,9 @@ func (l *LoadDayDataHandler) LoadDayData(w http.ResponseWriter, r *http.Request)
 	}
 }
 
-func (l *LoadDayDataHandler) loadBuyers(date int) error {
+func (l *LoadDayDataHandler) loadBuyers(date int64) error {
 	var endpointCaseJSON = jsoniter.Config{TagKey: "endpoint"}.Froze()
-	response, err := http.Get(buyersExternalEndpoint)
+	response, err := http.Get(buyersExternalEndpoint + fmt.Sprintf("?date=%v", date))
 	if err != nil {
 		return err
 	}
@@ -201,8 +201,8 @@ func (l *LoadDayDataHandler) loadBuyers(date int) error {
 	return nil
 }
 
-func (l *LoadDayDataHandler) loadProducts(date int) error {
-	response, err := http.Get(productsExternalEndpoint)
+func (l *LoadDayDataHandler) loadProducts(date int64) error {
+	response, err := http.Get(productsExternalEndpoint + fmt.Sprintf("?date=%v", date))
 	if err != nil {
 		return err
 	}
@@ -238,8 +238,8 @@ func (l *LoadDayDataHandler) loadProducts(date int) error {
 	return nil
 }
 
-func (l *LoadDayDataHandler) loadTransactions(date int) error {
-	response, err := http.Get(transactionsExternalEndpoint)
+func (l *LoadDayDataHandler) loadTransactions(date int64) error {
+	response, err := http.Get(transactionsExternalEndpoint + fmt.Sprintf("?date=%v", date))
 	if err != nil {
 		return err
 	}
