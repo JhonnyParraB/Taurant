@@ -116,6 +116,7 @@ func (b BuyerRepositoryDGraph) FindByIdWithTransactions(buyer_id string) (*model
 				age
 				perform: ~is_made_by{
 					transaction_id
+					transaction_date
 					location{
 						ip
 					}

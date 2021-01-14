@@ -48,6 +48,7 @@ func (b TransactionRepositoryDGraph) FindById(transaction_id string) (*model.Tra
 			findTransactionById(func: eq(transaction_id, "` + transaction_id + `"), first: 1) {
 				uid
 				transaction_id
+				transaction_date
 				is_made_by {
 					uid
 					id

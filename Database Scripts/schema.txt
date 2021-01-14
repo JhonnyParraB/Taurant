@@ -24,6 +24,7 @@ age: int .
 type Transaction {
   transaction_id
   is_made_by
+  transaction_date
   device
   location
   include
@@ -31,6 +32,7 @@ type Transaction {
 
 transaction_id: string @index(exact) .
 device: string @index(exact) .
+transaction_date int .
 is_made_by: uid @reverse .
 include: [uid] @reverse .
 location: uid @reverse .

@@ -346,6 +346,7 @@ func (l *LoadDayDataHandler) loadTransactions(date int64) error {
 		transaction := model.Transaction{
 			ID:            recordFields[0],
 			Buyer:         &buyer,
+			Date:          date,
 			Location:      &location,
 			Device:        recordFields[3],
 			ProductOrders: &productOrders,
