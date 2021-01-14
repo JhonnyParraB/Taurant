@@ -26,6 +26,9 @@
                     :hide-default-footer="true"
                     show-expand
                   >
+                  <template v-slot:[`item.date`]="{ item }">
+                        <span> {{ (new Date(item.date * 1000)).toLocaleDateString() }}</span>
+                  </template>
                   <template v-slot:expanded-item="{ headers, item }">
                     <td :colspan=headers.length>
                       <v-data-table
@@ -105,6 +108,7 @@ export default {
       transactionsHeaders: [
         { text: "ID", align: "start", sortable: true, value: "id" },
         { text: "IP", sortable: true, value: "location.ip" },
+        { text: "Date", sortable: true, value: "date" },
         { text: "Device", value: "device", sortable: true },
         { text: '', value: 'data-table-expand' },
       ],
