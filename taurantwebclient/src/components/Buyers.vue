@@ -59,6 +59,7 @@ export default {
     }
   },
   mounted() {
+    console.log(process.env.VUE_APP_TAURANT_SERVER_URL)
     this.retrieveBuyers();
   }
 };
