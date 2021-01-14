@@ -3,9 +3,11 @@ package driver
 import (
 	"context"
 	"log"
+	"os"
 
 	"github.com/dgraph-io/dgo"
 	"github.com/dgraph-io/dgo/protos/api"
+	"github.com/joho/godotenv"
 	jsoniter "github.com/json-iterator/go"
 	"google.golang.org/grpc"
 )
@@ -13,13 +15,14 @@ import (
 var client = newClient()
 
 func newClient() *dgo.Dgraph {
-	// Dial a gRPC connection. The address to dial to can be configured when
-	// setting up the dgraph cluster.
-	d, err := grpc.Dial("localhost:9080", grpc.WithInsecure())
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+	d, err := grpc.Dial(os.Getenv("DGRAPH_DATABASE_URL"), grpc.WithInsecure())
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	return dgo.NewDgraphClient(
 		api.NewDgraphClient(d),
 	)
