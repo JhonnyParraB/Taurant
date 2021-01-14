@@ -43,13 +43,15 @@ type LoadDayDataHandler struct {
 	iDUIDLocations        map[string]string
 }
 
-//Init is used at router
-func (l *LoadDayDataHandler) Init() {
+//NewLoadDayDataHandler is used at router
+func NewLoadDayDataHandler() *LoadDayDataHandler {
+	var l LoadDayDataHandler
 	l.jobChan = make(chan model.LoadDataJob, 100)
 	go l.worker(l.jobChan)
 	l.iDUIDBuyers = make(map[string]string)
 	l.iDUIDProducts = make(map[string]string)
 	l.iDUIDLocations = make(map[string]string)
+	return &l
 }
 
 func (l *LoadDayDataHandler) worker(jobChan <-chan model.LoadDataJob) {
@@ -139,6 +141,7 @@ func (l *LoadDayDataHandler) LoadDayData(w http.ResponseWriter, r *http.Request)
 	email := r.URL.Query().Get("email")
 	if email != "" {
 		if !isEmailValid(email) {
+			log.Println(errorTag, r.Method, r.URL.String(), "Wrong email format")
 			respondwithJSON(w, http.StatusBadRequest,
 				errorMessage{
 					Code:    wrongEmailParamFormatCode,

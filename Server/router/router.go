@@ -11,9 +11,8 @@ func GetRouter() *chi.Mux {
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.Logger)
 
-	var dayDataLoaderHandler handler.LoadDayDataHandler
+	var dayDataLoaderHandler = handler.NewLoadDayDataHandler()
 	var buyersHandler handler.BuyersHandler
-	dayDataLoaderHandler.Init()
 
 	router.Post("/load-day-data/{date}", dayDataLoaderHandler.LoadDayData)
 
