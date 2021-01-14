@@ -1,7 +1,9 @@
 package handler
 
 import (
+	"log"
 	"net/http"
+	"strconv"
 
 	"../model"
 	"../repository"
@@ -21,12 +23,44 @@ type buyerDetailedInformation struct {
 
 //GetBuyersBasicInformation is used at router
 func (b *BuyersHandler) GetBuyersBasicInformation(w http.ResponseWriter, r *http.Request) {
-	buyers, err := b.buyerRepository.FetchBasicInformation()
-	if err != nil {
-		handleInternalServerError(err, w)
-		return
+	pageS := r.URL.Query().Get("page")
+	itemsPerPageS := r.URL.Query().Get("itemsPerPage")
+	var buyers []model.Buyer
+	if pageS != "" && itemsPerPageS != "" {
+		page, err := strconv.ParseInt(pageS, 10, 32)
+		if err != nil {
+			log.Println(errorTag, r.Method, r.URL.String(), err)
+			respondwithJSON(w, http.StatusBadRequest,
+				errorMessage{
+					Code:    badParamsCode,
+					Details: errorsDetails[badParamsCode],
+				})
+			return
+		}
+		itemsPerPageS, err := strconv.ParseInt(itemsPerPageS, 10, 32)
+		if err != nil {
+			log.Println(errorTag, r.Method, r.URL.String(), err)
+			respondwithJSON(w, http.StatusBadRequest,
+				errorMessage{
+					Code:    badParamsCode,
+					Details: errorsDetails[badParamsCode],
+				})
+			return
+		}
+		buyers, err = b.buyerRepository.FetchBasicInformation(page*itemsPerPageS, itemsPerPageS)
+		if err != nil {
+			handleInternalServerError(err, w)
+			return
+		}
+		respondwithJSON(w, http.StatusOK, buyers)
+	} else {
+		buyers, err := b.buyerRepository.FetchBasicInformation(0, 0)
+		if err != nil {
+			handleInternalServerError(err, w)
+			return
+		}
+		respondwithJSON(w, http.StatusOK, buyers)
 	}
-	respondwithJSON(w, http.StatusOK, buyers)
 }
 
 //GetBuyerDetailedInformation is used at router

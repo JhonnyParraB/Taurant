@@ -22,6 +22,7 @@ const wrongDateParamFormatCode = "WrongDateParamFormat"
 const queueForLoadDataJobFullCode = "QueueForLoadDataJobFull"
 const internalServerErrorCode = "InternalServerError"
 const buyerNotFoundCode = "BuyerNotFound"
+const badParamsCode = "BadParams"
 
 var errorsDetails = map[string]string{
 	wrongEmailParamFormatCode:   "The email param has a wrong format",
@@ -29,6 +30,7 @@ var errorsDetails = map[string]string{
 	queueForLoadDataJobFullCode: "The queue of jobs for load data jobs is full. Please try again later.",
 	internalServerErrorCode:     "Internal server error has ocurred",
 	buyerNotFoundCode:           "The buyer was not found",
+	badParamsCode:               "The parameters are badly formatted",
 }
 
 func respondwithJSON(w http.ResponseWriter, code int, payload interface{}) {

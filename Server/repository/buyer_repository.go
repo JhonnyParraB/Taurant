@@ -2,6 +2,7 @@ package repository
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"../driver"
 	"../model"
@@ -19,18 +20,18 @@ type BuyerRepository interface {
 type BuyerRepositoryDGraph struct {
 }
 
-func (b BuyerRepositoryDGraph) FetchBasicInformation() ([]model.Buyer, error) {
-	query :=
+func (b BuyerRepositoryDGraph) FetchBasicInformation(offset int64, itemsPerPage int64) ([]model.Buyer, error) {
+	query := fmt.Sprintf(
 		`
 		{
-			findAllBuyers(func: has(buyer_id)) {
+			findAllBuyers(func: has(buyer_id), offset: %v, first: %v) {
 				uid
 				buyer_id
 				buyer_name
 				age
 			}
 		}	
-	`
+	`, offset, itemsPerPage)
 	res, err := driver.RunQuery(query)
 	if err != nil {
 		return nil, err
