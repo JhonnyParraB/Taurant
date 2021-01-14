@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"net/smtp"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -26,6 +27,8 @@ const succesfulEmail = "SUCCESFUL"
 const buyersExternalEndpoint string = "https://kqxty15mpg.execute-api.us-east-1.amazonaws.com/buyers"
 const productsExternalEndpoint string = "https://kqxty15mpg.execute-api.us-east-1.amazonaws.com/products"
 const transactionsExternalEndpoint string = "https://kqxty15mpg.execute-api.us-east-1.amazonaws.com/transactions"
+
+var emailRegex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 
 //LoadDayDataHandler is used at router
 type LoadDayDataHandler struct {
@@ -134,6 +137,16 @@ func sendLoadDataResultEmail(job model.LoadDataJob, msg []byte, emailType string
 func (l *LoadDayDataHandler) LoadDayData(w http.ResponseWriter, r *http.Request) {
 	dateParam := chi.URLParam(r, "date")
 	email := r.URL.Query().Get("email")
+	if email != "" {
+		if !isEmailValid(email) {
+			respondwithJSON(w, http.StatusBadRequest,
+				errorMessage{
+					Code:    wrongEmailParamFormatCode,
+					Details: errorsDetails[wrongEmailParamFormatCode],
+				})
+			return
+		}
+	}
 	dateUnixFormat, err := strconv.ParseInt(dateParam, 10, 64)
 	if err != nil {
 		log.Println(errorTag, r.Method, r.URL.String(), err)
