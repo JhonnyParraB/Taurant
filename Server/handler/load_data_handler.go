@@ -47,6 +47,13 @@ type LoadDayDataHandler struct {
 func NewLoadDayDataHandler() *LoadDayDataHandler {
 	var l LoadDayDataHandler
 	l.jobChan = make(chan model.LoadDataJob, 100)
+	jobsPending, err := l.laodDataJobRepository.FetchBasicInformation()
+	if err != nil {
+		log.Fatal(errorTag, "Error when trying to bring pending jobs from the database", err)
+	}
+	for _, jobPending := range jobsPending {
+		l.jobChan <- jobPending
+	}
 	go l.worker(l.jobChan)
 	l.iDUIDBuyers = make(map[string]string)
 	l.iDUIDProducts = make(map[string]string)
@@ -61,6 +68,7 @@ func (l *LoadDayDataHandler) worker(jobChan <-chan model.LoadDataJob) {
 }
 
 func (l *LoadDayDataHandler) processLoadDataJob(job model.LoadDataJob) {
+	log.Println("LOADING DATA LOAD JOB ... ", job.ID)
 	thereIsEmail := job.Email != ""
 	err := l.loadBuyers(job.Date)
 	if err != nil {
