@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"../driver"
-	"../model"
+	"Taurant/driver"
+
+	"Taurant/model"
+
 	jsoniter "github.com/json-iterator/go"
 )
 

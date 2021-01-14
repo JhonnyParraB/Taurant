@@ -15,8 +15,9 @@ import (
 	"strings"
 	"time"
 
-	"../model"
-	"../repository"
+	"Taurant/model"
+	"Taurant/repository"
+
 	"github.com/go-chi/chi"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/segmentio/ksuid"

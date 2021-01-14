@@ -3,8 +3,10 @@ package repository
 import (
 	"encoding/json"
 
-	"../driver"
-	"../model"
+	"Taurant/driver"
+
+	"Taurant/model"
+
 	jsoniter "github.com/json-iterator/go"
 )
 
@@ -23,7 +25,7 @@ func (b LoadDataJobRepositoryDGraph) FetchBasicInformation() ([]model.LoadDataJo
 	query :=
 		`
 		{
-			findAllLoadDataJobs(func: has(load_data_job_id)) {
+			findAllLoadDataJobs(func: has(load_data_job_id), orderasc: load_data_job_id) {
 				uid
 				load_data_job_id
 				load_data_job_date

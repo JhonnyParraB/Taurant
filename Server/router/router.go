@@ -1,7 +1,8 @@
 package router
 
 import (
-	"../handler"
+	"Taurant/handler"
+
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 )

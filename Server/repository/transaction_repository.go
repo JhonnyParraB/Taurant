@@ -3,8 +3,9 @@ package repository
 import (
 	"encoding/json"
 
-	"../driver"
-	"../model"
+	"Taurant/driver"
+	"Taurant/model"
+
 	jsoniter "github.com/json-iterator/go"
 )
 

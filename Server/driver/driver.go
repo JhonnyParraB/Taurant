@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/dgraph-io/dgo"
-	"github.com/dgraph-io/dgo/protos/api"
+	"github.com/dgraph-io/dgo/v200"
+	"github.com/dgraph-io/dgo/v200/protos/api"
 	"github.com/joho/godotenv"
 	jsoniter "github.com/json-iterator/go"
 	"google.golang.org/grpc"

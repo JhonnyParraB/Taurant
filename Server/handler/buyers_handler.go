@@ -5,9 +5,10 @@ import (
 	"net/http"
 	"strconv"
 
-	"../model"
-	"../repository"
-	"github.com/go-chi/chi"
+	"Taurant/model"
+	"Taurant/repository"
+
+	chi "github.com/go-chi/chi"
 )
 
 //BuyersHandler is used at router

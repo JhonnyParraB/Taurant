@@ -5,7 +5,8 @@ import (
 	"net/http"
 	"os"
 
-	Router "./router"
+	Router "Taurant/router"
+
 	"github.com/joho/godotenv"
 )
 
