@@ -205,9 +205,15 @@ func (l *LoadDayDataHandler) loadBuyers(date int64) error {
 			return err
 		}
 		if buyerFound == nil {
-			l.buyerRepository.Create(&buyer)
+			err = l.buyerRepository.Create(&buyer)
+			if err != nil {
+				return err
+			}
 		} else {
-			l.buyerRepository.Update(buyerFound.UID, &buyer)
+			err = l.buyerRepository.Update(buyerFound.UID, &buyer)
+			if err != nil {
+				return err
+			}
 		}
 		l.iDUIDBuyers[buyer.ID] = buyer.UID
 	}
@@ -242,9 +248,15 @@ func (l *LoadDayDataHandler) loadProducts(date int64) error {
 			return err
 		}
 		if productFound == nil {
-			l.productRepository.Create(&product)
+			err = l.productRepository.Create(&product)
+			if err != nil {
+				return err
+			}
 		} else {
-			l.productRepository.Update(productFound.UID, &product)
+			err = l.productRepository.Update(productFound.UID, &product)
+			if err != nil {
+				return err
+			}
 		}
 		l.iDUIDProducts[product.ID] = product.UID
 	}
@@ -309,7 +321,10 @@ func (l *LoadDayDataHandler) loadTransactions(date int64) error {
 			return err
 		}
 		if locationFound == nil {
-			l.locationRepository.Create(&location)
+			err = l.locationRepository.Create(&location)
+			if err != nil {
+				return err
+			}
 		} else {
 			location.UID = locationFound.UID
 		}
@@ -327,10 +342,20 @@ func (l *LoadDayDataHandler) loadTransactions(date int64) error {
 			return err
 		}
 		if transactionFound == nil {
-			l.transactionRepository.Create(&transaction)
+			err = l.transactionRepository.Create(&transaction)
+			if err != nil {
+				return err
+			}
 		} else {
-			l.transactionRepository.DeleteProductOrders(transactionFound.ProductOrders)
-			l.transactionRepository.Update(transactionFound.UID, &transaction)
+			err = l.transactionRepository.DeleteProductOrders(transactionFound.ProductOrders)
+			if err != nil {
+				return err
+			}
+			err = l.transactionRepository.Update(transactionFound.UID, &transaction)
+			if err != nil {
+				return err
+			}
+
 		}
 	}
 	return nil
