@@ -67,7 +67,7 @@ func (b *BuyersHandler) GetBuyersBasicInformation(w http.ResponseWriter, r *http
 //GetBuyerDetailedInformation is used at router
 func (b *BuyersHandler) GetBuyerDetailedInformation(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
-	buyer, err := b.buyerRepository.FindByIdWithTransactions(id)
+	buyer, err := b.buyerRepository.FindByIDWithTransactions(id)
 	if err != nil {
 		handleInternalServerError(err, w)
 		return

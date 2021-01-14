@@ -28,6 +28,7 @@ func newClient() *dgo.Dgraph {
 	)
 }
 
+//RunAlter _
 func RunAlter(schema string) error {
 	err := client.Alter(context.Background(), &api.Operation{
 		Schema: schema,
@@ -38,6 +39,7 @@ func RunAlter(schema string) error {
 	return nil
 }
 
+//RunMutation _
 func RunMutation(object interface{}) error {
 	var predicateCaseJSON = jsoniter.Config{TagKey: "predicate"}.Froze()
 	txn := client.NewTxn()
@@ -52,6 +54,7 @@ func RunMutation(object interface{}) error {
 	return nil
 }
 
+//RunMutationForDelete _
 func RunMutationForDelete(object interface{}) error {
 	var predicateCaseJSON = jsoniter.Config{TagKey: "predicate"}.Froze()
 	txn := client.NewTxn()
@@ -66,6 +69,7 @@ func RunMutationForDelete(object interface{}) error {
 	return nil
 }
 
+//RunQuery _
 func RunQuery(query string) ([]byte, error) {
 	txn := client.NewTxn()
 	res, err := txn.Query(context.Background(), query)

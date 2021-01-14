@@ -11,17 +11,21 @@ import (
 	jsoniter "github.com/json-iterator/go"
 )
 
+//BuyerRepository _
 type BuyerRepository interface {
 	FetchBasicInformation() []model.Buyer
 	Create(buyer *model.Buyer) string
-	FindById(buyer_id string) *model.Buyer
+	FindByID(buyerID string) *model.Buyer
+	FindByIDWithTransactions(buyerID string) *model.Buyer
 	Update(uid string, buyer *model.Buyer) string
 	FindBuyersWithSameIP(buyerID string) []model.Buyer
 }
 
+//BuyerRepositoryDGraph _
 type BuyerRepositoryDGraph struct {
 }
 
+//FetchBasicInformation _
 func (b BuyerRepositoryDGraph) FetchBasicInformation(offset int64, itemsPerPage int64) ([]model.Buyer, error) {
 	query := fmt.Sprintf(
 		`
@@ -52,13 +56,14 @@ func (b BuyerRepositoryDGraph) FetchBasicInformation(offset int64, itemsPerPage 
 	return buyersFound, nil
 }
 
+//Create _
 func (b BuyerRepositoryDGraph) Create(buyer *model.Buyer) error {
 	buyer.UID = "_:" + buyer.ID
 	err := driver.RunMutation(buyer)
 	if err != nil {
 		return err
 	}
-	buyerFound, err := b.FindById(buyer.ID)
+	buyerFound, err := b.FindByID(buyer.ID)
 	if err != nil {
 		return err
 	}
@@ -66,6 +71,7 @@ func (b BuyerRepositoryDGraph) Create(buyer *model.Buyer) error {
 	return nil
 }
 
+//Update _
 func (b BuyerRepositoryDGraph) Update(uid string, buyer *model.Buyer) error {
 	buyer.UID = uid
 	err := driver.RunMutation(buyer)
@@ -75,11 +81,12 @@ func (b BuyerRepositoryDGraph) Update(uid string, buyer *model.Buyer) error {
 	return nil
 }
 
-func (b BuyerRepositoryDGraph) FindById(buyer_id string) (*model.Buyer, error) {
+//FindByID _
+func (b BuyerRepositoryDGraph) FindByID(buyerID string) (*model.Buyer, error) {
 	query :=
 		`
 		{
-			findBuyerById(func: eq(buyer_id, "` + buyer_id + `"), first: 1) {
+			findBuyerById(func: eq(buyer_id, "` + buyerID + `"), first: 1) {
 				uid
 				buyer_id
 				buyer_name
@@ -108,11 +115,12 @@ func (b BuyerRepositoryDGraph) FindById(buyer_id string) (*model.Buyer, error) {
 	return nil, nil
 }
 
-func (b BuyerRepositoryDGraph) FindByIdWithTransactions(buyer_id string) (*model.Buyer, error) {
+//FindByIDWithTransactions _
+func (b BuyerRepositoryDGraph) FindByIDWithTransactions(buyerID string) (*model.Buyer, error) {
 	query :=
 		`
 		{
-			findBuyerById(func: eq(buyer_id, "` + buyer_id + `"), first: 1) {
+			findBuyerById(func: eq(buyer_id, "` + buyerID + `"), first: 1) {
 				uid
 				buyer_id
 				buyer_name
@@ -157,6 +165,7 @@ func (b BuyerRepositoryDGraph) FindByIdWithTransactions(buyer_id string) (*model
 	return nil, nil
 }
 
+//FindBuyersWithSameIP _
 func (b BuyerRepositoryDGraph) FindBuyersWithSameIP(buyerID string) ([]model.Buyer, error) {
 	query :=
 		`
@@ -203,6 +212,7 @@ func (b BuyerRepositoryDGraph) FindBuyersWithSameIP(buyerID string) ([]model.Buy
 	return buyersWithSameIP, nil
 }
 
+//FindRecommendedProducts _
 func (b BuyerRepositoryDGraph) FindRecommendedProducts(buyerID string) ([]model.Product, error) {
 	query :=
 		`

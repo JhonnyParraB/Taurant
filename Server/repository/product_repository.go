@@ -9,16 +9,19 @@ import (
 	jsoniter "github.com/json-iterator/go"
 )
 
+//ProductRepository _
 type ProductRepository interface {
 	FetchUIDs() map[string]string
 	Create(product *model.Product) string
-	FindById(product_id string) *model.Product
+	FindById(productID string) *model.Product
 	Update(uid string, product *model.Product) string
 }
 
+//ProductRepositoryDGraph _
 type ProductRepositoryDGraph struct {
 }
 
+//FetchUIDs _
 func (b ProductRepositoryDGraph) FetchUIDs() (map[string]string, error) {
 	iDUIDProducts := make(map[string]string)
 	query :=
@@ -51,13 +54,14 @@ func (b ProductRepositoryDGraph) FetchUIDs() (map[string]string, error) {
 	return iDUIDProducts, nil
 }
 
+//Create _
 func (b ProductRepositoryDGraph) Create(product *model.Product) error {
 	product.UID = "_:" + product.ID
 	err := driver.RunMutation(product)
 	if err != nil {
 		return err
 	}
-	productFound, err := b.FindById(product.ID)
+	productFound, err := b.FindByID(product.ID)
 	if err != nil {
 		return err
 	}
@@ -65,6 +69,7 @@ func (b ProductRepositoryDGraph) Create(product *model.Product) error {
 	return nil
 }
 
+//Update _
 func (b ProductRepositoryDGraph) Update(uid string, product *model.Product) error {
 	product.UID = uid
 	err := driver.RunMutation(product)
@@ -74,11 +79,12 @@ func (b ProductRepositoryDGraph) Update(uid string, product *model.Product) erro
 	return nil
 }
 
-func (b ProductRepositoryDGraph) FindById(product_id string) (*model.Product, error) {
+//FindByID _
+func (b ProductRepositoryDGraph) FindByID(productID string) (*model.Product, error) {
 	query :=
 		`
 		{
-			findProductById(func: eq(product_id, "` + product_id + `"), first: 1) {
+			findProductById(func: eq(product_id, "` + productID + `"), first: 1) {
 				uid
 				product_id
 				product_name

@@ -7,6 +7,7 @@ import (
 	"github.com/go-chi/chi/middleware"
 )
 
+//GetRouter _
 func GetRouter() *chi.Mux {
 	router := chi.NewRouter()
 	router.Use(middleware.Recoverer)

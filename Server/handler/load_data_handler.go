@@ -217,7 +217,7 @@ func (l *LoadDayDataHandler) loadBuyers(date int64) error {
 	var buyers []model.Buyer
 	err = endpointCaseJSON.Unmarshal(data, &buyers)
 	for _, buyer := range buyers {
-		buyerFound, err := l.buyerRepository.FindById(buyer.ID)
+		buyerFound, err := l.buyerRepository.FindByID(buyer.ID)
 		if err != nil {
 			return err
 		}
@@ -260,7 +260,7 @@ func (l *LoadDayDataHandler) loadProducts(date int64) error {
 			Name:  recordFields[1],
 			Price: price,
 		}
-		productFound, err := l.productRepository.FindById(product.ID)
+		productFound, err := l.productRepository.FindByID(product.ID)
 		if err != nil {
 			return err
 		}
@@ -356,7 +356,7 @@ func (l *LoadDayDataHandler) loadTransactions(date int64) error {
 			ProductOrders: &productOrders,
 		}
 
-		transactionFound, err := l.transactionRepository.FindById(transaction.ID)
+		transactionFound, err := l.transactionRepository.FindByID(transaction.ID)
 		if err != nil {
 			return err
 		}

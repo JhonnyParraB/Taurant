@@ -10,17 +10,20 @@ import (
 	jsoniter "github.com/json-iterator/go"
 )
 
+//LoadDataJobRepository _
 type LoadDataJobRepository interface {
 	FetchBasicInformation() []model.LoadDataJob
 	Create(loadDataJob *model.LoadDataJob) string
-	FindById(loadDataJob string) *model.LoadDataJob
+	FindByID(loadDataJobID string) *model.LoadDataJob
 	Delete(loadDataJob *model.LoadDataJob) *model.LoadDataJob
 	Update(uid string, loadDataJob *model.LoadDataJob) string
 }
 
+//LoadDataJobRepositoryDGraph _
 type LoadDataJobRepositoryDGraph struct {
 }
 
+//FetchBasicInformation _
 func (b LoadDataJobRepositoryDGraph) FetchBasicInformation() ([]model.LoadDataJob, error) {
 	query :=
 		`
@@ -48,13 +51,14 @@ func (b LoadDataJobRepositoryDGraph) FetchBasicInformation() ([]model.LoadDataJo
 	return loadDataJobsFound, nil
 }
 
+//Create _
 func (b LoadDataJobRepositoryDGraph) Create(loadDataJob *model.LoadDataJob) error {
 	loadDataJob.UID = "_:" + loadDataJob.ID
 	err := driver.RunMutation(loadDataJob)
 	if err != nil {
 		return err
 	}
-	loadDataJobFound, err := b.FindById(loadDataJob.ID)
+	loadDataJobFound, err := b.FindByID(loadDataJob.ID)
 	if err != nil {
 		return err
 	}
@@ -62,6 +66,7 @@ func (b LoadDataJobRepositoryDGraph) Create(loadDataJob *model.LoadDataJob) erro
 	return nil
 }
 
+//Delete _
 func (b LoadDataJobRepositoryDGraph) Delete(loadDataJob *model.LoadDataJob) error {
 	err := driver.RunMutationForDelete(loadDataJob)
 	if err != nil {
@@ -70,6 +75,7 @@ func (b LoadDataJobRepositoryDGraph) Delete(loadDataJob *model.LoadDataJob) erro
 	return nil
 }
 
+//Update _
 func (b LoadDataJobRepositoryDGraph) Update(uid string, loadDataJob *model.LoadDataJob) error {
 	loadDataJob.UID = uid
 	err := driver.RunMutation(loadDataJob)
@@ -79,11 +85,12 @@ func (b LoadDataJobRepositoryDGraph) Update(uid string, loadDataJob *model.LoadD
 	return nil
 }
 
-func (b LoadDataJobRepositoryDGraph) FindById(loadDataJob_id string) (*model.LoadDataJob, error) {
+//FindByID _
+func (b LoadDataJobRepositoryDGraph) FindByID(loadDataJobID string) (*model.LoadDataJob, error) {
 	query :=
 		`
 		{
-			findLoadDataJobById(func: eq(load_data_job_id, "` + loadDataJob_id + `"), first: 1) {
+			findLoadDataJobById(func: eq(load_data_job_id, "` + loadDataJobID + `"), first: 1) {
 				uid
 				load_data_job_id
 				load_data_job_date

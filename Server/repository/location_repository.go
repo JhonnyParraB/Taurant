@@ -9,15 +9,18 @@ import (
 	jsoniter "github.com/json-iterator/go"
 )
 
+//LocationRepository _
 type LocationRepository interface {
 	Create(location *model.Location) string
 	FindByIP(ip string) *model.Location
 	Update(uid string, location *model.Location) string
 }
 
+//LocationRepositoryDGraph _
 type LocationRepositoryDGraph struct {
 }
 
+//Create _
 func (b LocationRepositoryDGraph) Create(location *model.Location) error {
 	location.UID = "_:" + location.IP
 	err := driver.RunMutation(location)
@@ -32,6 +35,7 @@ func (b LocationRepositoryDGraph) Create(location *model.Location) error {
 	return nil
 }
 
+//Update _
 func (b LocationRepositoryDGraph) Update(uid string, location *model.Location) error {
 	location.UID = uid
 	err := driver.RunMutation(location)
@@ -41,6 +45,7 @@ func (b LocationRepositoryDGraph) Update(uid string, location *model.Location) e
 	return nil
 }
 
+//FindByIP _
 func (b LocationRepositoryDGraph) FindByIP(ip string) (*model.Location, error) {
 	query :=
 		`

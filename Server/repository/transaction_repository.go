@@ -9,23 +9,26 @@ import (
 	jsoniter "github.com/json-iterator/go"
 )
 
+//TransactionRepository _
 type TransactionRepository interface {
 	Create(transaction *model.Transaction) string
-	FindById(transaction_id string) *model.Transaction
+	FindByID(transactionID string) *model.Transaction
 	Update(uid string, transaction *model.Transaction) string
 	DeleteProductOrders(productOrders []*model.ProductOrder)
 }
 
+//TransactionRepositoryDGraph _
 type TransactionRepositoryDGraph struct {
 }
 
+//Create _
 func (b TransactionRepositoryDGraph) Create(transaction *model.Transaction) error {
 	transaction.UID = "_:" + transaction.ID
 	err := driver.RunMutation(transaction)
 	if err != nil {
 		return err
 	}
-	transactionFound, err := b.FindById(transaction.ID)
+	transactionFound, err := b.FindByID(transaction.ID)
 	if err != nil {
 		return err
 	}
@@ -33,6 +36,7 @@ func (b TransactionRepositoryDGraph) Create(transaction *model.Transaction) erro
 	return nil
 }
 
+//Update _
 func (b TransactionRepositoryDGraph) Update(uid string, transaction *model.Transaction) error {
 	transaction.UID = uid
 	err := driver.RunMutation(transaction)
@@ -42,11 +46,12 @@ func (b TransactionRepositoryDGraph) Update(uid string, transaction *model.Trans
 	return nil
 }
 
-func (b TransactionRepositoryDGraph) FindById(transaction_id string) (*model.Transaction, error) {
+//FindByID _
+func (b TransactionRepositoryDGraph) FindByID(transactionID string) (*model.Transaction, error) {
 	query :=
 		`
 		{
-			findTransactionById(func: eq(transaction_id, "` + transaction_id + `"), first: 1) {
+			findTransactionById(func: eq(transaction_id, "` + transactionID + `"), first: 1) {
 				uid
 				transaction_id
 				transaction_date
@@ -84,6 +89,7 @@ func (b TransactionRepositoryDGraph) FindById(transaction_id string) (*model.Tra
 	return nil, nil
 }
 
+//DeleteProductOrder _
 func (b TransactionRepositoryDGraph) DeleteProductOrder(productOrder *model.ProductOrder) error {
 	err := driver.RunMutationForDelete(map[string]string{"uid": productOrder.UID})
 	if err != nil {
