@@ -10,8 +10,6 @@
 <script>
 export default {
   name: "taurant-bar",
-  data() {
-  },
   methods: {
     goHome(){
       this.$router.push({name: "buyers"}).catch(()=>{

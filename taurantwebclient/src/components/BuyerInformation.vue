@@ -3,7 +3,6 @@
     <v-col cols="12" sm="12">
       <v-card class="mx-auto" tile>
         <v-card-title class="justify-center">Buyer Information</v-card-title>
-        <v-card>
         <div id = "charging">
           <v-progress-circular
           :size="200"
@@ -12,6 +11,7 @@
           v-if=charging
         ></v-progress-circular>
         </div>
+        <v-card v-if=!charging>
             <v-card-title>{{ this.buyerInformation.buyer.id }}    {{this.buyerInformation.buyer.name}}</v-card-title>
             <v-card-subtitle>{{ this.buyerInformation.buyer.age }} years</v-card-subtitle>
 
@@ -66,6 +66,7 @@
                     disable-pagination
                     :hide-default-footer="true"
                     @click:row="seeBuyerInformation"
+                    item-key="shared_ip+name"
                   >
                   </v-data-table>
                 </v-expansion-panel-content>
