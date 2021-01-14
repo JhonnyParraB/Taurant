@@ -57,6 +57,7 @@
                     :items="this.buyerInformation.buyers_with_same_ip"
                     disable-pagination
                     :hide-default-footer="true"
+                    @click:row="seeBuyerInformation"
                   >
                   </v-data-table>
                 </v-expansion-panel-content>
@@ -140,7 +141,10 @@ export default {
           total += this.centsToDollars(parseInt(product_orders[i].product.price) * parseInt(product_orders[i].quantity)) 
         }
         return total
-    }
+    },
+    seeBuyerInformation(item){
+      this.$router.push({name: "buyer-information",  params: {id:item.id}});
+    },
   },
   mounted() {
     this.retrieveBuyerInformation();

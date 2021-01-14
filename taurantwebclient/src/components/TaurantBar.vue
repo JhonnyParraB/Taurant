@@ -14,7 +14,9 @@ export default {
   },
   methods: {
     goHome(){
-      this.$router.push({name: "buyers"});
+      this.$router.push({name: "buyers"}).catch(()=>{
+        this.$router.go()
+      });
     }
   },
   mounted() {

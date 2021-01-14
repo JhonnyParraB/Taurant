@@ -10,7 +10,7 @@
           <date-data-loader></date-data-loader>
         </div>
         <div class="right">
-          <router-view></router-view>
+          <router-view :key="$route.fullPath"></router-view>
         </div>
       </div>
     </div>
