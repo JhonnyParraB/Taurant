@@ -139,7 +139,4 @@ export default {
 #datePicker{
     margin-bottom: 5vh;
 }
-#getUpdatedBtn{
-    text-align: center;
-}
 </style>

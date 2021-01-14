@@ -4,6 +4,14 @@
       <v-card class="mx-auto" tile>
         <v-card-title class="justify-center">Buyer Information</v-card-title>
         <v-card>
+        <div id = "charging">
+          <v-progress-circular
+          :size="200"
+          color="primary"
+          indeterminate
+          v-if=charging
+        ></v-progress-circular>
+        </div>
             <v-card-title>{{ this.buyerInformation.buyer.id }}    {{this.buyerInformation.buyer.name}}</v-card-title>
             <v-card-subtitle>{{ this.buyerInformation.buyer.age }} years</v-card-subtitle>
 
@@ -92,6 +100,7 @@ export default {
     return {
       buyerInformation: null,
       buyer_id: "",
+      charging: true,
       transactionsHeaders: [
         { text: "ID", align: "start", sortable: true, value: "id" },
         { text: "IP", sortable: true, value: "location.ip" },
@@ -123,6 +132,7 @@ export default {
       this.buyer_id = this.$route.params.id
       BuyersDataService.getBuyerDetailedInformation(this.buyer_id)
         .then((response) => {
+          this.charging = false;
           this.buyerInformation = response.data;
         })
         .catch((e) => {
@@ -155,5 +165,8 @@ export default {
 <style>
 .list {
   max-width: 750px;
+}
+#charging{
+  text-align: center;
 }
 </style>
