@@ -68,7 +68,7 @@ func (l *LoadDayDataHandler) worker(jobChan <-chan model.LoadDataJob) {
 }
 
 func (l *LoadDayDataHandler) processLoadDataJob(job model.LoadDataJob) {
-	log.Println("LOADING DATA LOAD JOB ... ", job.ID)
+	log.Println("STARTING THE DATA LOAD JOB ... ", job.ID)
 	thereIsEmail := job.Email != ""
 	err := l.loadBuyers(job.Date)
 	if err != nil {
