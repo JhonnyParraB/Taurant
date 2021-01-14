@@ -13,6 +13,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"../model"
 	"../repository"
@@ -103,18 +104,20 @@ func handleLoadDataJobError(err error, thereIsEmail bool, job model.LoadDataJob)
 }
 
 func getSuccessEmailMessage(job model.LoadDataJob) []byte {
+	tm := time.Unix(job.Date, 0)
 	msg := []byte(fmt.Sprintf("To: %s\r\n", job.Email) +
 		fmt.Sprintf("Subject: Load Data Request %s succesfully completed!\r\n", job.ID) +
 		"\r\n" +
-		fmt.Sprintf("Your load data request for %v time was succesfully completed.\r\n -Taurant\r\n", job.Date))
+		fmt.Sprintf("Your load data request for %v (%s) time was succesfully completed.\r\n -Taurant\r\n", job.Date, tm.Format(time.UnixDate)))
 	return msg
 }
 
 func getErrorEmailMessage(job model.LoadDataJob) []byte {
+	tm := time.Unix(job.Date, 0)
 	msg := []byte(fmt.Sprintf("To: %s\r\n", job.Email) +
 		fmt.Sprintf("Subject: Error While Processing Load Data Request %s\r\n", job.ID) +
 		"\r\n" +
-		fmt.Sprintf("There was an error while processing your load data request for %v. Please contact Taurant's Administrator.\r\n -Taurant\r\n", job.Date))
+		fmt.Sprintf("There was an error while processing your load data request for %v (%s). Please contact Taurant's Administrator.\r\n -Taurant\r\n", job.Date, tm.Format(time.UnixDate)))
 	return msg
 }
 
