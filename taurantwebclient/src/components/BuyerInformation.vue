@@ -133,6 +133,7 @@ export default {
       this.buyer_id = this.$route.params.id
       BuyersDataService.getBuyerDetailedInformation(this.buyer_id)
         .then((response) => {
+          console.log(response.data)
           this.charging = false;
           this.buyerInformation = response.data;
         })

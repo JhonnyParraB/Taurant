@@ -160,9 +160,11 @@ func (l *LoadDayDataHandler) LoadDayData(w http.ResponseWriter, r *http.Request)
 			})
 		return
 	}
+	ksuid := ksuid.New().String()
 	job := model.LoadDataJob{
+		UID:   "_:" + ksuid,
 		Date:  dateUnixFormat,
-		ID:    ksuid.New().String(),
+		ID:    ksuid,
 		Email: email,
 	}
 	err = l.laodDataJobRepository.Create(&job)
@@ -307,6 +309,7 @@ func (l *LoadDayDataHandler) loadTransactions(date int64) error {
 		dupMap := dupCount(products)
 		for uid, quantity := range dupMap {
 			productOrders = append(productOrders, model.ProductOrder{
+				UID: "_:" + ksuid.New().String(),
 				Product: &model.Product{
 					UID: uid,
 				},
@@ -349,17 +352,20 @@ func (l *LoadDayDataHandler) loadTransactions(date int64) error {
 			if err != nil {
 				return err
 			}
-		} else {
-			err = l.transactionRepository.DeleteProductOrders(transactionFound.ProductOrders)
-			if err != nil {
-				return err
+		} /*else {
+			for _, productOrder := range *transactionFound.ProductOrders {
+				err = l.transactionRepository.DeleteProductOrder(&productOrder)
+				if err != nil {
+					return err
+				}
 			}
 			err = l.transactionRepository.Update(transactionFound.UID, &transaction)
 			if err != nil {
 				return err
 			}
 
-		}
+		}*/
+		//IT WAS NOT POSSIBLE TO DELETE OLD PRODUCT_ORDERS
 	}
 	return nil
 }

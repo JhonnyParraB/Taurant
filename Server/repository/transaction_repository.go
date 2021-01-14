@@ -56,13 +56,7 @@ func (b TransactionRepositoryDGraph) FindById(transaction_id string) (*model.Tra
 				device
 				ip
 				include{
-					trade{
-							uid
-							product_id
-							product_name
-							price
-					}
-					quantity
+					uid
 				}
 			}
 		}	
@@ -88,8 +82,8 @@ func (b TransactionRepositoryDGraph) FindById(transaction_id string) (*model.Tra
 	return nil, nil
 }
 
-func (b TransactionRepositoryDGraph) DeleteProductOrders(productOrders *[]model.ProductOrder) error {
-	err := driver.RunMutationForDelete(productOrders)
+func (b TransactionRepositoryDGraph) DeleteProductOrder(productOrder *model.ProductOrder) error {
+	err := driver.RunMutationForDelete(map[string]string{"uid": productOrder.UID})
 	if err != nil {
 		return err
 	}
